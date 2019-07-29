@@ -27,7 +27,7 @@ class DB {
 	}
 	function get_row($q){
 		$result = mysqli_query($this->link,$q);
-		return mysqli_fetch_assoc($result);
+		return $result ? mysqli_fetch_assoc($result) : false;
 	}
 	function count($q){
 		$result = mysqli_query($this->link,$q);
@@ -52,7 +52,7 @@ class DB {
 		$q = "INSERT INTO `$table`";
 		$q .=" (`".implode("`,`",daddslashes(array_keys($array)))."`) ";
 		$q .=" VALUES ('".implode("','",daddslashes(array_values($array)))."') ";
-		
+
 		if(mysqli_query($this->link,$q))
 			return mysqli_insert_id($this->link);
 		return false;

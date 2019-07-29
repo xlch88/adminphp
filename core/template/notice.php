@@ -41,11 +41,11 @@
 	<body>
 		<div>
 			<h1><?=$notice?></h1>
-			<p>2 秒后返回上一页面...</p>
+			<p>3 秒后进行跳转...</p>
 		</div>
 		<hr />
-		<p>+ [ Powered By AdminPHP<sup>V1</sup> ] +</p>
-		<p>&copy; Lu'an Downtime Tech.</p>
+		<p>+ [ Powered By AdminPHP<sup>V2</sup> ] +</p>
+		
 		
 		
 		<script>
@@ -64,7 +64,7 @@
 			<?php }else{ ?>
 			history.go(-1);
 			<?php } ?>
-		},2000);
+		},3000);
 		</script>
 	</body>
 </html>
