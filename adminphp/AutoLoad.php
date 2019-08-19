@@ -3,7 +3,7 @@ namespace AdminPHP;
 
 class AutoLoad{
 	private static $registerAutoLoad = [];
-	private static $included = [];
+	public static $included = [];
 	
 	public static function init(){
 		spl_autoload_register(['\\AdminPHP\\AutoLoad', 'load']);
@@ -25,10 +25,10 @@ class AutoLoad{
 		return true;
 	}
 	
-	public static function load($className){
+	public static function load($className, $exception = true){
 		global $a;
 	
-		if(class_exists($className)){
+		if(class_exists($className, false)){
 			return;
 		}
 		
@@ -36,11 +36,11 @@ class AutoLoad{
 		
 		foreach(self::$registerAutoLoad as $class => $path){
 			if(substr($className, 0, strlen($class)) == $class){
-				$file[] = $path['path'] . $path['prefix'] . substr($className, strlen($class) + 1, strlen($className) + 1 - strlen($class)) . $path['subfix'];
+				$file[] = $path['path'] . $path['prefix'] . str_replace('\\', '/', substr($className, strlen($class) + 1, strlen($className) + 1 - strlen($class))) . $path['subfix'];
 			}
 		}
 		
-		$path = explode('\\', $className);
+		$path = explode('/', str_replace('\\', '/', $className));
 		
 		// App\Model\User
 		// App\Controller\IndexController
@@ -51,6 +51,7 @@ class AutoLoad{
 		// App\XLBook\Lib\QwQ
 		
 		// DB (adminphp/libraries)
+		// AdminPHP\Exception\ErrorException
 		
 		if($path[0] == 'App' && count($path) >= 3){
 			if(in_array($path[1], ['Controller', 'Model', 'Lib'])){
@@ -70,7 +71,10 @@ class AutoLoad{
 				$file[] = $p . implode(DIRECTORY_SEPARATOR, $path) . '.php';
 			}
 		}else if($path[0] == 'AdminPHP' && count($path) >= 2){
-			if(in_array(strtolower($path[1]), ['lib', 'libraries'])) $path[1] = 'libraries';
+			if($path[1] == 'Lib') $path[1] = 'libraries';
+		  	if(isset($path[2])){
+				$path[1] = lcfirst($path[1]);
+			}
 			
 			$p = adminphp;
 			
@@ -90,7 +94,7 @@ class AutoLoad{
 				return;
 			}
 		}
-		
-		throw new \Exception('can\'t autoload:' . $className . "\r\n" . print_r($file, true));
+		if($exception)
+			throw new \Exception('can\'t autoload:' . $className . "\r\n" . print_r($file, true));
 	}
 }

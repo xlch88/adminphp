@@ -14,11 +14,11 @@ function safe_html($text){
 * 过滤SQL参数,防止注入.
 * 可传入array或string.
 * 
-* @param mixed $var 待过滤文本
+* @param string $text 待过滤文本/数组
 * @return string
 */
-function safe_sql($var){
-	return daddslashes($var);
+function safe_sql($text){
+	return addslashes($text);
 }
 
 /**  
@@ -31,17 +31,7 @@ function safe_sql($var){
 * @return string
 */
 function safe_attr($text){
-	return str_replace([
-		'"',
-		"'",
-		'=',
-		' '
-	], [
-		'%22',
-		'%27',
-		'%3D',
-		'+'
-	], $text);
+	return htmlspecialchars($text);
 }
 
 /**  
@@ -49,7 +39,7 @@ function safe_attr($text){
 * 编码前：“http://xlch.me/赵耀biss/滑稽/qwq/<h1>XSS!</h1>/Сука блять.php?input=<script>alert(1);</script>”
 * 编码后：“http://xlch.me/%E8%B5%B5%E8%80%80biss/%E6%BB%91%E7%A8%BD/qwq/%3Ch1%3EXSS!%3C/h1%3E/%D0%A1%D1%83%D0%BA%D0%B0+%D0%B1%D0%BB%D1%8F%D1%82%D1%8C.php?input=%3Cscript%3Ealert(1);%3C/script%3E”
 * 
-* @param mixed $text 待过滤文本
+* @param string $text 待过滤文本
 * @return string
 */
 function safe_url($text){
@@ -80,14 +70,15 @@ function safe_url($text){
 
 /**  
 * 防止目录包含漏洞
-* 编码前：GET['dir'] = “../../../.\../qwq.php”
-* 编码后：safe_path(GET['dir']) = “qwq.php”
+* 编码前：GET['dir'] = “../../../.\../qwq.jpg\0.php”
+* 编码后：safe_path(GET['dir']) = “qwq.jpg.php”
 * 
-* @param mixed $var 待过滤文本
+* @param string $var 待过滤文本
 * @return string
 */
 function safe_path($text){
 	return str_replace([
+		chr(0),
 		'..\\',
 		'../',
 		'\\..',
@@ -108,6 +99,27 @@ function safe_path($text){
 		'|'
 		
 	], '', $text);
+}
+
+/**  
+* 传入数组形式
+* 
+* @param mixed $var 待过滤文本数组
+* @param string $method 过滤方法,以safe_开头的函数
+* @return string
+*/
+function safe2($var, string $method){
+	$method_ = 'safe_' . $method;
+	
+	if(is_array($var)) {
+		foreach($var as $key => $val) {
+			$var[$key] = safe2($val, $method);
+		}
+	} else {
+		$var = $method_($var);
+	}
+	
+	return $var;
 }
 
 function daddslashes($string, $force = 0, $strip = FALSE) {

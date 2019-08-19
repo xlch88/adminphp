@@ -4,8 +4,12 @@ namespace App\Controller;
 class IndexController{
 	public function hello(){
 		view('index/index', [
-			'text'	=> '!!! Hello World !!!'
+			'text'	=> 'AdminPHP<br/>V2 Beta'
 		]);
+	}
+	
+	public function exception(){
+		throw new \Exception('啊，异常了！', 23333);
 	}
 	
 	public function sysinfo(){

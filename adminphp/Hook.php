@@ -1,6 +1,8 @@
 <?php
 namespace AdminPHP;
 
+use AdminPHP\PerformanceStatistics;
+
 class Hook{
 	private static $hookList = [];
 	
@@ -12,6 +14,7 @@ class Hook{
 		if(isset(self::$hookList[$id])){
 			foreach(self::$hookList[$id] as $index => $function){
 				$function($args);
+				PerformanceStatistics::log('Hook:' . $id . ' (' . $index . ')');
 			}
 		}
 	}

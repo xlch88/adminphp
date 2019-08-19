@@ -1,17 +1,21 @@
 <?php
 function view($templateFile_, $args = [], $isSystem = 0){
-	\AdminPHP\View::view($templateFile_, $args, $isSystem);
+	return \AdminPHP\View::view($templateFile_, $args, $isSystem);
 }
 function do_hook($id, $args = []){
-	\AdminPHP\Hook::doHook($id, $args);
+	return \AdminPHP\Hook::doHook($id, $args);
 }
 function add_hook($id, $function){
-	\AdminPHP\Hook::addHook($id, $function);
+	return \AdminPHP\Hook::addHook($id, $function);
+}
+function url($router = '', $args = ''){
+	return \AdminPHP\Router::url($router, $args);
 }
 
-function notice($notice, $go = ''){
+function notice($notice, $go = '', $time = 0){
 	$notice = [
-		'notice'	=>	$notice
+		'notice'	=>	$notice,
+		'time'		=> $time
 	];
 	
 	if($go){
@@ -19,53 +23,64 @@ function notice($notice, $go = ''){
 	}
 	
 	view(adminphp . 'template/notice', $notice, 1);
+	
+	/* 性能统计 END */
+	\AdminPHP\PerformanceStatistics::log('END');
+	\AdminPHP\PerformanceStatistics::show();
 	die();
 }
 
 function i($i, $method = 'all', $filter = ''){
 	$return = null;
 	
+	$method = strtolower("$method");
 	switch($method){
-		case 1:
+		case '1':
 		case 'get':
 			$return = isset($_GET[$i]) ? $_GET[$i] : '';
 		break;
 		
-		case 2:
+		case '2':
 		case 'post':
 			$return = isset($_POST[$i]) ? $_POST[$i] : '';
 		break;
 		
-		case 0:
+		case '0':
 		case 'all':
 		default:
 			$return = isset($_REQUEST[$i]) ? $_REQUEST[$i] : '';
 		break;
 	}
 	
-	switch($filter){
-		case 'html':
-		case 'sql':
-		case 'attr':
-		case 'url':
-		case 'path':
-			$func = 'safe_' . $filter;
-			$return = $func($return);
-		break;
-		
-		case 'int':
-			$return = (int)$return;
-		break;
-		
-		case 'float':
-		case 'number':
-			$return = (float)$return;
-		break;
-		
-		case 'bool':
-		case 'boolean':
-			$return = in_array(strtolower($return), ['1', 'true', 't', 'yes', 'y', '√']) ? true : false;
-		break;
+	if(is_array($filter)){
+		$return = in_array($return, $filter) ? $return : $filter[0];
+	}else{
+		$filter_ = explode(',', $filter);
+		foreach($filter_ as $filter){
+			switch(strtolower($filter)){
+				case 'html':
+				case 'sql':
+				case 'attr':
+				case 'url':
+				case 'path':
+					$return = safe2($return, $filter);
+				break;
+				
+				case 'int':
+					$return = (int)$return;
+				break;
+				
+				case 'float':
+				case 'number':
+					$return = (float)$return;
+				break;
+				
+				case 'bool':
+				case 'boolean':
+					$return = in_array(strtolower($return), ['1', 'true', 't', 'yes', 'y', '√']);
+				break;
+			}
+		}
 	}
 	
 	return $return;
@@ -123,7 +138,7 @@ function sysInfo($args = []){
 		}
 	}
 	
-	$defaults = [
+	$defaultValue = [
 		'code'=>'404',
 		'type'=>'error', //[info, error, success]
 		'title'=>'啊哈... 出了一点点小问题_(:з」∠)_',
@@ -146,10 +161,9 @@ function sysInfo($args = []){
 		*/
 	];
 	
-	foreach($args as $key=>$value){
-		$defaults[$key] = $value;
-	}
-	if($defaults['buttons'] == false || !is_array($defaults['buttons'])) $defaults['buttons'] = [
+	$defaultValue = array_merge($defaultValue, $args);
+	
+	if($defaultValue['buttons'] == false || !is_array($defaultValue['buttons'])) $defaultValue['buttons'] = [
 		[
 			'type'=>'success',
 			'title'=>'返回首页',
@@ -164,7 +178,27 @@ function sysInfo($args = []){
 		]
 	];
 	
-	view(adminphp . 'template/sysinfo', $defaults, 1);
+	$defaultValue['yonakaPicList'] = [
+		'success'	=> '//img.xlch8.cn/adminphp/sysinfo/success.png',
+		'error'		=> '//img.xlch8.cn/adminphp/sysinfo/error.png',
+		'info'		=> '//img.xlch8.cn/adminphp/sysinfo/info.png'
+	];
+	$defaultValue['colorList'] = [
+		'success'	=> '#59a734',
+		'error'		=> '#ffb1b1',
+		'info'		=> '#2488ff'
+	];
 	
-	exit();
+	$defaultValue['yonakaPic'] = isset($defaultValue['yonakaPic']) ? $defaultValue['yonakaPic'] :
+		isset($defaultValue['yonakaPicList'][$defaultValue['type']]) ? $defaultValue['yonakaPicList'][$defaultValue['type']] : $defaultValue['yonakaPicList']['success'];
+	
+	$defaultValue['color'] = isset($defaultValue['color']) ? $defaultValue['color'] : 
+		isset($defaultValue['colorList'][$defaultValue['type']]) ? $defaultValue['colorList'][$defaultValue['type']] : $defaultValue['colorList']['success'];
+	
+	view(adminphp . 'template/sysinfo', $defaultValue, 1);
+	
+	/* 性能统计 END */
+	\AdminPHP\PerformanceStatistics::log('END');
+	\AdminPHP\PerformanceStatistics::show();
+	die();
 }

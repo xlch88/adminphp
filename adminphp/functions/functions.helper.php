@@ -70,3 +70,7 @@ function randString($length){
 function returnJson($arr){
 	die(json_encode($arr, JSON_PRETTY_PRINT + JSON_UNESCAPED_UNICODE));
 }
+function returnCallback($arr, $key = ''){
+	$key = safe_html($key ?: i('callback'));
+	die($key . '(' . json_encode($arr, JSON_PRETTY_PRINT + JSON_UNESCAPED_UNICODE) . ')');
+}
