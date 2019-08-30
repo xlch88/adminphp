@@ -1,6 +1,8 @@
 <?php
 namespace App\Controller;
 
+use AdminPHP\AdminPHP;
+
 class IndexController{
 	public function index(){
 		view('index/index', [
@@ -8,14 +10,41 @@ class IndexController{
 		]);
 	}
 	
+	public function router(){
+		$username = i('id', 'args', 'html');
+		
+		echo '<h1>Welcome ' . $username . '~!</h1>';
+	}
+	
 	public function exception(){
+		AdminPHP::$config['debug'] = false;
+		
+		throw new \Exception('啊，异常了！', 23333);
+	}
+	
+	public function exception2(){
+		AdminPHP::$config['debug'] = true;
+		
+		throw new \Exception('啊，异常了！', 23333);
+	}
+	
+	public function exception3(){
+		AdminPHP::$config['debug'] = false;
+		AdminPHP::$config['adminInfo'] = [
+			'自定义信息1'	=> '啦啦啦1',
+			'自定义信息2'	=> '啦啦啦2',
+			'自定义信息3'	=> '啦啦啦3'
+		];
+		
 		throw new \Exception('啊，异常了！', 23333);
 	}
 	
 	public function sysinfo(){
+		$type = i('type', 'all', ['error', 'success', 'info']);
+		
 		sysinfo([
 			'code'	=> '233',
-			'type'	=> 'error',
+			'type'	=> $type,
 			'info'	=> '这是一个提示页面',
 			'more'	=> [
 				'By.Xlch88',

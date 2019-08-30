@@ -33,12 +33,12 @@ class Controller{
 		include($file);
 		
 		if(!class_exists($controller, false)){
-			self::error(404.1); //控制器文件找到但是未找到控制器Class
+			self::error(500); //控制器文件找到但是未找到控制器Class
 			return;
 		}
 		
 		if(!method_exists($controller, $m) || $m == 'init'){
-			self::error(404.2); //控制器已加载但找不到方法
+			self::error(404); //控制器已加载但找不到方法
 			return;
 		}
 		

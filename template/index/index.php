@@ -36,11 +36,30 @@
             <br/>
             <br/>
 			
-            <a href="<?=url('index/sysinfo'); ?>" target="_blank">系统提示页1</a>
+            <a href="<?=url('index/notice'); ?>" target="_blank">系统提示</a>
             | 
-			<a href="<?=url('index/notice'); ?>" target="_blank">系统提示页2</a>
+			<a href="<?=url('index/sysinfo', 'type=info'); ?>" target="_blank">系统信息:普通</a>
             | 
-			<a href="<?=url('index/exception'); ?>" target="_blank">错误/异常管理</a>
+			<a href="<?=url('index/sysinfo', 'type=success'); ?>" target="_blank">系统信息:成功</a>
+            | 
+			<a href="<?=url('index/sysinfo', 'type=error'); ?>" target="_blank">系统信息:失败</a>
+			
+            <br/>
+            <br/>
+            <br/>
+			
+            <a href="<?=url('index/exception'); ?>" target="_blank">错误管理:简略信息</a>
+            | 
+            <a href="<?=url('index/exception2'); ?>" target="_blank">错误管理:详细信息</a>
+            | 
+            <a href="<?=url('index/exception3'); ?>" target="_blank">错误管理:自定义管理员信息</a>
+			
+            <br/>
+            <br/>
+            <br/>
+			
+            <a href="<?=url('index/router', 'id=xlch88'); ?>" target="_blank">URL路由</a>
+			
 			
             <br/>
             <br/>
@@ -48,6 +67,12 @@
 			<img src="<?=url('verifyCode/get'); ?>">
 			
 			<p>数据库连接状态: <?php var_dump($dbStatus); ?></p>
+			<p>
+				- 语言列表 -<br/>
+				<?php foreach(\AdminPHP\Language::$languages as $lang){ ?>
+					<?=$lang; ?><br/>
+				<?php } ?>
+			</p>
 			
             <br/>
             <br/>

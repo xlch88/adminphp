@@ -48,6 +48,7 @@ class Router{
 		if($methodPath !== FALSE){
 			self::$methodPath = self::real_url($methodPath, true);
 		}
+		
 		if($methodPath == FALSE && !in_array(self::get_uri(), ['/', ''])){ //未成功解析到路由且路径不为空
 			self::notFound();
 		}
@@ -167,7 +168,7 @@ class Router{
 		switch(self::$config['router']){
 			case 1:
 				if(!self::$config['rewrite']){
-					$return = explode('?', substr($_SERVER['REQUEST_URI'], stripos($_SERVER['PHP_SELF'], '.php') + 4))[0];
+					$return = explode('?', substr($_SERVER['REQUEST_URI'], strpos($_SERVER['REQUEST_URI'], $_SERVER['SCRIPT_NAME']) !== FALSE ? strpos($_SERVER['REQUEST_URI'], $_SERVER['SCRIPT_NAME']) + strlen($_SERVER['SCRIPT_NAME']) : 0))[0];
 				}else{
 					$return = explode('?', $_SERVER['REQUEST_URI'])[0];
 				}
@@ -194,10 +195,10 @@ class Router{
 		$return = self::getUrl(false);
 		
 		if(!self::$config['rewrite']){
-			$return.= substr($_SERVER['PHP_SELF'], 0, stripos($_SERVER['PHP_SELF'], '.php') + 4);
-			
 			switch(self::$config['router']){
 				case 1:
+					$return = substr($return, -1) == '/' ? substr($return, 0, strlen($return) - 1) : $return;
+					$return.= substr($_SERVER['PHP_SELF'], 0, stripos($_SERVER['PHP_SELF'], '.php') + 4);
 					$return.= $url;
 				break;
 				
@@ -240,11 +241,12 @@ class Router{
 		$getRoute = false;
 		if(self::$config['router'] != 0 && isset(self::$method2route[implode('/', self::real_url($route))])){
 			$getRoute = true;
-		
-			$router = self::$method2route[implode('/', self::real_url($route))];
 			
+			$router = self::$method2route[implode('/', self::real_url($route))];
 			$routerArgs = array_column($router['args'], 0);
+			
 			parse_str($args, $args_);
+			
 			foreach($routerArgs as $index => $arg_){
 				if(!in_array($arg_, array_keys($args_))){ //参数不匹配 跳过
 					$getRoute = false;
@@ -266,7 +268,7 @@ class Router{
 		if($getRoute){
 			return self::mkurl($router['route'], $router['args']);
 		}else{
-			return self::getUrl(false) . '?' . http_build_query(self::real_url($route, true)) . ($args ? '&' . $args : '');
+			return self::getUrl(false) . substr($_SERVER['PHP_SELF'], 1) . '?' . http_build_query(self::real_url($route, true)) . ($args ? '&' . $args : '');
 		}
 	}
 

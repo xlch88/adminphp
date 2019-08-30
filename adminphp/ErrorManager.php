@@ -21,7 +21,7 @@ class ErrorManager{
 	static public $adminInfo = [];
 	
 	static public function init(){
-		self::$adminInfo = l('@adminphp.errorManager.adminInfo', [], AdminPHP::$config['adminInfo'] ?: [
+		self::$adminInfo = AdminPHP::$config['adminInfo'] ?: l('@adminphp.errorManager.adminInfo', [], [
 			'adminphp框架'		=> '<a href="https://www.adminphp.net/" target="_blank">https://www.adminphp.net/</a>',
 			'adminphp框架作者'	=> 'Xlch88 (i@xlch.me)',
 		]);

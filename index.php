@@ -50,7 +50,7 @@ include(adminphp . 'Init.php');
 		   开启后可以隐藏index.php, 让地址栏更美观.
 		   当然，需要修改网站服务器软件的配置。
 		*/
-		'rewrite'	=> 1,
+		'rewrite'	=> 0,
 	],
 	
 	/* 调试模式

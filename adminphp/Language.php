@@ -46,10 +46,12 @@ class Language {
 			self::$languages[] = self::format(substr($value, 0, strpos($value, ';') ?: strlen($value)));
 		}
 		
-		self::$languages = array_slice(array_values(array_unique(array_filter(self::$languages))), 0, 10);
+		self::$languages = array_slice(array_values(array_unique(array_filter(self::$languages))), 0, 8);
 		
 		self::$languages[] = self::format(self::$custom);
 		self::$languages[] = self::format(self::$default);
+		
+		self::$languages = array_unique(self::$languages);
 		
 		
 		if(!isset($_COOKIE[self::$cookieName]) || !in_array($_COOKIE[self::$cookieName], self::$languages)){
