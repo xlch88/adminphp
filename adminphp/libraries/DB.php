@@ -1,4 +1,16 @@
 <?php
+/* ----------------------------------------------- *
+ | [ AdminPHP ] Version : 2.0 beta
+ | 简单粗暴又不失高雅的迫真 OOP MVC 框架，，，
+ |
+ | URL     : https://www.adminphp.net/
+ * ----------------------------------------------- *
+ | Name    : 类:数据库
+ |
+ | Author  : Xlch88 (i@xlch.me)
+ | LICENSE : WTFPL http://www.wtfpl.net/about
+ * ----------------------------------------------- */
+
 use AdminPHP\PerformanceStatistics;
 use AdminPHP\Exception\DBException;
 
@@ -11,7 +23,7 @@ class DB {
     public function __construct($dbConfig, $isThrow = true){
 		$this->dbConfig = $dbConfig;
 		
-        $this->link = mysqli_connect($this->dbConfig['ip'], $this->dbConfig['user'], $this->dbConfig['pass'], $this->dbConfig['db'], $this->dbConfig['port']);
+        $this->link = @mysqli_connect($this->dbConfig['ip'], $this->dbConfig['user'], $this->dbConfig['pass'], $this->dbConfig['db'], $this->dbConfig['port']);
         if (!$this->link) {
 			if(!$isThrow){
 				return false;
@@ -49,25 +61,49 @@ class DB {
     public function arr2sql($arr = [], $mode = 'where'){
         $return = [];
         foreach ($arr as $key => $value) {
-			$sql = '`' . addslashes($key) . '`';
-			
 			if($mode == 'insert'){
-				if(!is_array($value) && substr($value, 0, 1) == '@'){
-					$sql.= ' = ' . substr($value, 1);
-				}elseif($key == '@'){
+				if($key == '#'){
+					if(!is_string($value) && !is_numeric($value) && !is_bool($value)){
+						throw new DBException(2, $this, '', ['arr' => $arr, 'key' => $key, 'value' => $value]);
+					}
 					$sql = $value;
+				}elseif(substr($key, 0, 1) == '#'){
+					if(!is_string($value) && !is_numeric($value) && !is_bool($value)){
+						throw new DBException(2, $this, '', ['arr' => $arr, 'key' => $key, 'value' => $value]);
+					}
+					$sql = '`' . addslashes(substr($key, 1)) . '` = ' . $value;
+				}elseif(substr($key, 0, 1) == '@'){
+					if(!is_array($value)){
+						throw new DBException(3, $this, '', ['arr' => $arr, 'key' => $key, 'value' => $value]);
+					}
+					$sql = '`' . addslashes(substr($key, 1)) . '` = "' . addslashes(json_encode($value)) . '"';
 				}else{
-					$sql.= ' = "' . addslashes(is_array($value) ? json_encode($value) : $value) . '"';
+					if(!is_string($value) && !is_numeric($value) && !is_bool($value)){
+						throw new DBException(2, $this, '', ['arr' => $arr, 'key' => $key, 'value' => $value]);
+					}
+					$sql = '`' . addslashes($key) . '` = "' . addslashes($value) . '"';
 				}
 			}else{
-				if(is_array($value)){
-					$sql.= 'IN ("' . implode('", "', $value) . '")';
-				}elseif(substr($value, 0, 1) == '@'){
-					$sql.= ' = ' . substr($value, 1);
-				}elseif($key == '@'){
+				if($key == '#'){
+					if(!is_string($value) && !is_numeric($value) && !is_bool($value)){
+						throw new DBException(2, $this, '', ['arr' => $arr, 'key' => $key, 'value' => $value]);
+					}
 					$sql = $value;
+				}elseif(substr($key, 0, 1) == '#'){
+					if(!is_string($value) && !is_numeric($value) && !is_bool($value)){
+						throw new DBException(2, $this, '', ['arr' => $arr, 'key' => $key, 'value' => $value]);
+					}
+					$sql = '`' . addslashes(substr($key, 1)) . '` = ' . $value;
+				}elseif(substr($key, 0, 1) == '@'){
+					if(!is_array($value)){
+						throw new DBException(3, $this, '', ['arr' => $arr, 'key' => $key, 'value' => $value]);
+					}
+					$sql = '`' . addslashes(substr($key, 1)) . '` IN ("' . implode('", "', safe2($value, 'sql')) . '")';
 				}else{
-					$sql.= ' = "' . $value . '"';
+					if(!is_string($value) && !is_numeric($value) && !is_bool($value)){
+						throw new DBException(2, $this, '', ['arr' => $arr, 'key' => $key, 'value' => $value]);
+					}
+					$sql = '`' . addslashes($key) . '` = "' . addslashes($value) . '"';
 				}
 			}
 			

@@ -1,7 +1,20 @@
 <?php
+/* ----------------------------------------------- *
+ | [ AdminPHP ] Version : 2.0 beta
+ | 简单粗暴又不失高雅的迫真 OOP MVC 框架，，，
+ |
+ | URL     : https://www.adminphp.net/
+ * ----------------------------------------------- *
+ | Name    : Router (URL路由处理)
+ |
+ | Author  : Xlch88 (i@xlch.me)
+ | LICENSE : WTFPL http://www.wtfpl.net/about
+ * ----------------------------------------------- */
+
 namespace AdminPHP;
 
 use AdminPHP\Exception\RouterException;
+use AdminPHP\AdminPHP;
 
 class Router{
 	static private $finalRoute = [];
@@ -9,14 +22,70 @@ class Router{
 	static public $args = [];
 	static public $routeList = [];
 	static public $methodPath = [ 'a' => '', 'c' => '', 'm' => '' ];
+	static public $config = [];
 	
 	static public $regexList = [
-		'int'	=> '[0-9]*?'
+		'int'		=> '[0-9]*?',
+		'text'		=> '.*?'
 	];
 	
 	static private $method2route = [];
 	
+	static public function init($config){
+		global $a,$c,$m;
+		
+		self::$config = $config;
+		
+		Hook::do('app_init_router');
+		
+		uksort(self::$routeList, function($a, $b){
+			return strlen($a) > strlen($b) ? -1 : 1;
+		});
+		
+		list(self::$finalRoute, self::$method2route) = self::getFinalRoute(self::$routeList);
+		$methodPath = self::parse_uri();
+		
+		if($methodPath !== FALSE){
+			self::$methodPath = self::real_url($methodPath, true);
+		}
+		if($methodPath == FALSE && !in_array(self::get_uri(), ['/', ''])){ //未成功解析到路由且路径不为空
+			self::notFound();
+		}
+		
+		Hook::do('app_init_router_end');
+		
+		self::$methodPath['a'] = i('a', 0, 'path') ?: self::$methodPath['a'];
+		self::$methodPath['c'] = i('c', 0, 'path') ?: self::$methodPath['c'];
+		self::$methodPath['m'] = i('m', 0, 'path') ?: self::$methodPath['m'];
+		
+		if(!self::$methodPath['a'] && !self::$methodPath['c'] && !self::$methodPath['m']){
+			list(self::$methodPath['a'], self::$methodPath['c'], self::$methodPath['m']) = self::real_url(self::$config['index']);
+		}
+		
+		$a = self::$methodPath['a'] = (self::$methodPath['a'] ?: self::$config['default']['a']);
+		$c = self::$methodPath['c'] = (self::$methodPath['c'] ?: self::$config['default']['c']);
+		$m = self::$methodPath['m'] = (self::$methodPath['m'] ?: self::$config['default']['m']);
+	}
 	
+	static private function notFound(){
+		if(Hook::do('router_error')){ //用户自定义处理
+			return;
+		}
+		
+		sysinfo(l('@adminphp.sysinfo.statusCode.404', [], [
+			'code'		=> 404,
+			'type'		=> 'error',
+			'title'		=> '啊哈... 出了一点点小问题_(:з」∠)_',
+			'info'		=> '页面找不到啦...',
+			'moreTitle'	=> '可能的原因：',
+			'more'		=> [
+				'该页面已移至其他地址',
+				'手滑输错了地址',
+				'你在用脸滚键盘',
+				'你的猫在键盘漫步'
+			]
+		]));
+	}
 	
 	static public function setRoutes($routes){
 		self::$routeList = $routes;
@@ -36,29 +105,6 @@ class Router{
 	}
 	static public function addRegexes($addRegexes){
 		self::$regexList = array_merge(self::$regexList, $addRegexes);
-	}
-	
-	static public function init(){
-		global $a,$c,$m;
-		
-		Hook::doHook('app_init_router');
-		
-		list(self::$finalRoute, self::$method2route) = self::getFinalRoute(self::$routeList);
-		$methodPath = self::parse_uri();
-		
-		if($methodPath !== FALSE){
-			self::$methodPath = self::real_url($methodPath, true);
-		}
-		
-		self::$methodPath['a'] = i('a', 0, 'path') ?: self::$methodPath['a'];
-		self::$methodPath['c'] = i('c', 0, 'path') ?: self::$methodPath['c'];
-		self::$methodPath['m'] = i('m', 0, 'path') ?: self::$methodPath['m'];
-		
-		Hook::doHook('app_init_router_end');
-		
-		$a = self::$methodPath['a'] = (self::$methodPath['a'] ?: defaultApp);
-		$c = self::$methodPath['c'] = (self::$methodPath['c'] ?: 'index');
-		$m = self::$methodPath['m'] = (self::$methodPath['m'] ?: 'index');
 	}
 	
 	static private function getFinalRoute($routeList){
@@ -104,11 +150,10 @@ class Router{
 					$m2r['args'][] = $rule;
 				
 					$route = str_replace($match[0][$index], '(' . self::$regexList[$rule[1]] . ')', $route);
-					
-					$m2r['preg'] = $route;
 				}
 			}
 			
+			$m2r['preg'] = $route;
 			$finalRoute[$route] = $option;
 			$method2route[implode('/', self::real_url($method))] = $m2r;
 		}
@@ -116,14 +161,69 @@ class Router{
 		return [$finalRoute, $method2route];
 	}
 	
+	static public function get_uri(){
+		$return = '';
+		
+		switch(self::$config['router']){
+			case 1:
+				if(!self::$config['rewrite']){
+					$return = explode('?', substr($_SERVER['REQUEST_URI'], stripos($_SERVER['PHP_SELF'], '.php') + 4))[0];
+				}else{
+					$return = explode('?', $_SERVER['REQUEST_URI'])[0];
+				}
+			break;
+			
+			case 2:
+				$return = '/' . i('s');
+			break;
+			
+			case 3:
+				if(!self::$config['rewrite']){
+					$uri = $_SERVER['REQUEST_URI'];
+					$return = '/' . (strpos($uri, '?') === FALSE ? '' : (strpos($uri, '&') !== FALSE ? substr($uri, strpos($uri, '?') + 1, strpos($uri, '&') - (strpos($uri, '?') + 1)) : substr($uri, strpos($uri, '?') + 1)));
+				}else{
+					$return = explode('?', $_SERVER['REQUEST_URI'])[0];
+				}
+			break;
+		}
+		
+		return $return;
+	}
+	
+	static public function mkurl($url, $args){
+		$return = self::getUrl(false);
+		
+		if(!self::$config['rewrite']){
+			$return.= substr($_SERVER['PHP_SELF'], 0, stripos($_SERVER['PHP_SELF'], '.php') + 4);
+			
+			switch(self::$config['router']){
+				case 1:
+					$return.= $url;
+				break;
+				
+				case 2:
+					$return.= '?s=' . substr($url, 1);
+				break;
+				
+				case 3:
+					$return.= '?' . substr($url, 1);
+				break;
+			}
+		}else{
+			$return = $url;
+		}
+		
+		return $return . ($args ? (strpos($return, '?') !== FALSE ? '&' . $args : '?' . $args) : '');
+	}
+	
 	static private function parse_uri(){
-		$uri = explode('?', $_SERVER['REQUEST_URI'])[0];
+		$uri = self::get_uri();
 		
 		foreach(self::$finalRoute as $route => $option){
 			if(preg_match_all('/^' . $route . '$/', $uri, $match)){
 				//保存url内的参数
 				foreach($option['args'] as $index => $key){
-					self::$args[$key] = $match[1][$index];
+					self::$args[$key] = $match[$index + 1][0];
 				}
 				
 				//返回方法
@@ -134,16 +234,11 @@ class Router{
 		return false;
 	}
 	
-	
-	
-	
-	
-	
 	static public function url($route = '', $args = ''){
 		global $c, $m, $a;
 		
 		$getRoute = false;
-		if(isset(self::$method2route[implode('/', self::real_url($route))])){
+		if(self::$config['router'] != 0 && isset(self::$method2route[implode('/', self::real_url($route))])){
 			$getRoute = true;
 		
 			$router = self::$method2route[implode('/', self::real_url($route))];
@@ -169,33 +264,10 @@ class Router{
 		}
 		
 		if($getRoute){
-			return $router['route'] . ($router['args'] ? '?' . $router['args'] : '');
+			return self::mkurl($router['route'], $router['args']);
 		}else{
-			if($route !== ''){
-				$route = explode('/', $route);
-				
-				$return = [];
-				
-				if(count($route) == 3){
-					$return[]	= 'a=' . $route[0];
-					$return[]	= 'c=' . $route[1];
-					$return[]	= 'm=' . $route[2];
-				}elseif(count($route) == 2){
-					$return[]	= 'c=' . $route[0];
-					$return[]	= 'm=' . $route[1];
-				}elseif(count($route) == 1){
-					$return[]	= 'c=' . $route[0];
-				}else{
-					throw new Exception('error route');
-				}
-			}else{
-				$return[]	= 'a=' . $a;
-				$return[]	= 'c=' . $c;
-				$return[]	= 'm=' . $m;
-			}
-			return '/?' . implode('&', $return) . ($args ? '&' . $args : '');
+			return self::getUrl(false) . '?' . http_build_query(self::real_url($route, true)) . ($args ? '&' . $args : '');
 		}
-		
 	}
 
 	//文本转换为实际路由
@@ -209,21 +281,21 @@ class Router{
 			$return['c'] = $router[1];
 			$return['m'] = $router[2];
 		}elseif(count($router) == 2){
-			$return['a'] = lcfirst(defaultApp);
+			$return['a'] = lcfirst(self::$config['default']['a']);
 			$return['c'] = $router[0];
 			$return['m'] = $router[1];
 		}elseif(count($router) == 1){
-			$return['a'] = lcfirst(defaultApp);
+			$return['a'] = lcfirst(self::$config['default']['a']);
 			$return['c'] = $router[0];
-			$return['m'] = 'index';
+			$return['m'] = self::$config['default']['m'];
 		}
 		
 		return $iskey ? $return : array_values($return);
 	}
 
 	//获取访问的url
-	static public function getUrl(){
-		$return = (self::is_ssl() ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] . ($_SERVER['SERVER_PORT'] != 80 && $_SERVER['SERVER_PORT'] != 443 ? ':' . $_SERVER['SERVER_PORT'] : '') . $_SERVER['REQUEST_URI'];
+	static public function getUrl($uri = true){
+		$return = (self::is_ssl() ? 'https://' : 'http://') . (explode(':', $_SERVER['HTTP_HOST'])[0]) . ($_SERVER['SERVER_PORT'] != 80 && $_SERVER['SERVER_PORT'] != 443 ? ':' . $_SERVER['SERVER_PORT'] : '') . ($uri ? $_SERVER['REQUEST_URI'] : '/');
 		
 		return $return;
 	}

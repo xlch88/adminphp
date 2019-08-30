@@ -1,33 +1,34 @@
 <?php
+/* ----------------------------------------------- *
+ | [ AdminPHP ] Version : 2.0 beta
+ | 简单粗暴又不失高雅的迫真 OOP MVC 框架，，，
+ |
+ | URL     : https://www.adminphp.net/
+ * ----------------------------------------------- *
+ | Name    : 函数集:框架函数
+ |
+ | Author  : Xlch88 (i@xlch.me)
+ | LICENSE : WTFPL http://www.wtfpl.net/about
+ * ----------------------------------------------- */
+
 function view($templateFile_, $args = [], $isSystem = 0){
 	return \AdminPHP\View::view($templateFile_, $args, $isSystem);
 }
-function do_hook($id, $args = []){
-	return \AdminPHP\Hook::doHook($id, $args);
-}
-function add_hook($id, $function){
-	return \AdminPHP\Hook::addHook($id, $function);
-}
+
 function url($router = '', $args = ''){
 	return \AdminPHP\Router::url($router, $args);
 }
 
-function notice($notice, $go = '', $time = 0){
-	$notice = [
-		'notice'	=>	$notice,
-		'time'		=> $time
-	];
-	
-	if($go){
-		$notice['go'] = $go;
-	}
-	
-	view(adminphp . 'template/notice', $notice, 1);
-	
-	/* 性能统计 END */
-	\AdminPHP\PerformanceStatistics::log('END');
-	\AdminPHP\PerformanceStatistics::show();
-	die();
+function do_hook($id, $args = []){
+	return \AdminPHP\Hook::do($id, $args);
+}
+
+function add_hook($id, $function){
+	return \AdminPHP\Hook::add($id, $function);
+}
+
+function l($value, $args = [], $default = null){
+	return \AdminPHP\Language::languagePrintf($value, $args, $default);
 }
 
 function i($i, $method = 'all', $filter = ''){
@@ -37,7 +38,11 @@ function i($i, $method = 'all', $filter = ''){
 	switch($method){
 		case '1':
 		case 'get':
-			$return = isset($_GET[$i]) ? $_GET[$i] : '';
+			$return = isset($_GET[$i]) ? $_GET[$i] : i($i, 'args');
+		break;
+		
+		case 'args':
+			$return = isset(\AdminPHP\Router::$args[$i]) ? \AdminPHP\Router::$args[$i] : '';
 		break;
 		
 		case '2':
@@ -48,7 +53,7 @@ function i($i, $method = 'all', $filter = ''){
 		case '0':
 		case 'all':
 		default:
-			$return = isset($_REQUEST[$i]) ? $_REQUEST[$i] : '';
+			$return = isset($_REQUEST[$i]) ? $_REQUEST[$i] : i($i, 'args');
 		break;
 	}
 	
@@ -86,7 +91,26 @@ function i($i, $method = 'all', $filter = ''){
 	return $return;
 }
 
-function sysInfo($args = []){
+function notice($notice, $go = '', $time = 0){
+	$notice = [
+		'notice'	=>	$notice,
+		'time'		=> $time
+	];
+	
+	if($go){
+		$notice['go'] = $go;
+	}
+	
+	extract($notice);
+	include(adminphp . 'template/notice.php');
+	
+	/* 性能统计 END */
+	\AdminPHP\PerformanceStatistics::log('END');
+	\AdminPHP\PerformanceStatistics::show();
+	die();
+}
+
+function sysinfo($args = []){
 	if(!isset($args['title'])){
 		switch($args['type']){
 			case 'success':
@@ -178,24 +202,19 @@ function sysInfo($args = []){
 		]
 	];
 	
-	$defaultValue['yonakaPicList'] = [
-		'success'	=> '//img.xlch8.cn/adminphp/sysinfo/success.png',
-		'error'		=> '//img.xlch8.cn/adminphp/sysinfo/error.png',
-		'info'		=> '//img.xlch8.cn/adminphp/sysinfo/info.png'
-	];
 	$defaultValue['colorList'] = [
 		'success'	=> '#59a734',
 		'error'		=> '#ffb1b1',
 		'info'		=> '#2488ff'
 	];
 	
-	$defaultValue['yonakaPic'] = isset($defaultValue['yonakaPic']) ? $defaultValue['yonakaPic'] :
-		isset($defaultValue['yonakaPicList'][$defaultValue['type']]) ? $defaultValue['yonakaPicList'][$defaultValue['type']] : $defaultValue['yonakaPicList']['success'];
-	
 	$defaultValue['color'] = isset($defaultValue['color']) ? $defaultValue['color'] : 
 		isset($defaultValue['colorList'][$defaultValue['type']]) ? $defaultValue['colorList'][$defaultValue['type']] : $defaultValue['colorList']['success'];
+
+	extract($defaultValue);
 	
-	view(adminphp . 'template/sysinfo', $defaultValue, 1);
+	@header('HTTP/1.1 ' . $code);
+	include(adminphp . 'template/sysinfo.php');
 	
 	/* 性能统计 END */
 	\AdminPHP\PerformanceStatistics::log('END');

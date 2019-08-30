@@ -1,41 +1,41 @@
 <link href="https://cdn.bootcss.com/highlight.js/9.15.9/styles/solarized-light.min.css" rel="stylesheet">
-<div class="info">
-	<div class="img">
-		<img src="//img.xlch8.cn/adminphp/sysinfo/exception.png">
-	</div>
+<div class="info exception">
+	<div class="img img_exception"></div>
 	<div class="errorInfo">
-		<h2>异常捕获 _(:з」∠)_</h2>
+		<h2><?=l('异常捕获 _(:з」∠)_'); ?></h2>
 		<div class="table-responsive">
 			<table class="errorText">
 				<tr>
-					<td>页面地址：</td>
+					<td><?=l('页面地址：'); ?></td>
 					<td><?=safe_html($url); ?></td>
 				</tr>
 				<tr>
-					<td>异常类型：</td>
+					<td><?=l('异常类型：'); ?></td>
 					<td><font class="c-darkred"><?=$class; ?></font></td>
 				</tr>
 				<tr>
-					<td>异常代码：</td>
+					<td><?=l('异常代码：'); ?></td>
 					<td><font class="c-blue"><?=$code;?></font></td>
 				</tr>
 				<tr>
-					<td>异常定位：</td>
-					<td><font class="c-red"><?=$file; ?></font> 的 <font class="c-red"><?=$line; ?></font> 行</td>
+					<td><?=l('异常定位：'); ?></td>
+					<td><font class="c-red"><?=$file; ?></font> <?=l('的'); ?> <font class="c-red"><?=$line; ?></font> <?=l('行'); ?></td>
 				</tr>
 				<tr>
-					<td>异常信息：</td>
+					<td><?=l('异常信息：'); ?></td>
 					<td><font class="c-blue"><?=$message; ?></font></td>
 				</tr>
 			</table>
 		</div>
-		
+		<?php if($debug){ ?>
 		<div class="table-responsive">
 			<pre><code><?=str_replace(["\t", '[redline]', '[/redline]'], ['    ', '<span class="redLine">', '</span>'], safe_html($fileText)); ?></code></pre>
 		</div>
+		<?php } ?>
 	</div>
+	<?php if($debug){ ?>
 	<div class="vars">
-		<h2>数据输出 (〜￣△￣)〜</h2>
+		<h2><?=l('数据输出 (〜￣△￣)〜'); ?></h2>
 
 		<?php foreach($exceptionVars as $key => $value){ ?>
 			<?php if($value['type'] == 1){ ?>
@@ -61,7 +61,7 @@
 		<?php } ?>
 	</div>
 	<div class="trace">
-		<h2>来源追踪 ╮(╯﹏╰）╭ <span class="allOpen">[全部打开]</span></h2>
+		<h2><?=l('来源追踪 ╮(╯﹏╰）╭'); ?> <span class="allOpen"><?=l('[全部打开]'); ?></span></h2>
 		<?php foreach($trace as $row){ ?>
 		<div class="item">
 			<div class="filepath b-green">
@@ -84,6 +84,28 @@
 		</div>
 		<?php } ?>
 	</div>
+	<?php }else{ ?>
+	<div class="adminInfo">
+		<h2><?=l('管理员信息'); ?> <span class="allOpen"><?=l('请将错误信息发送给管理员'); ?></span></h2>
+		<div class="table-responsive">
+			<table class="errorText">
+				<thead>
+				<?php foreach($adminInfo as $key => $value){ ?>
+				<tr>
+					<td><?=$key; ?>：</td>
+					<td><?=$value; ?></td>
+				</tr>
+				<?php } ?>
+				</thead>
+			</table>
+		</div>
+		<?php if($debug){ ?>
+		<div class="table-responsive">
+			<pre><code><?=str_replace(["\t", '[redline]', '[/redline]'], ['    ', '<span class="redLine">', '</span>'], safe_html($fileText)); ?></code></pre>
+		</div>
+		<?php } ?>
+	</div>
+	<?php } ?>
 </div>
 <!-- 没有jq真是太难受了 -->
 <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
@@ -97,12 +119,12 @@ $(function(){
 	});
 	
 	$('.allOpen').click(function(){
-		if($(this).html() == '[全部打开]'){
+		if($(this).html() == '<?=l("[全部打开]"); ?>'){
 			$('.trace>.item .table-responsive').show();
-			$(this).html('[全部关闭]');
+			$(this).html('<?=l("[全部关闭]"); ?>');
 		}else{
 			$('.trace>.item .table-responsive').hide();
-			$(this).html('[全部打开]');
+			$(this).html('<?=l("[全部打开]"); ?>');
 		}
 	});
 	

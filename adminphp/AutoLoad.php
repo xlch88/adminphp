@@ -1,5 +1,19 @@
 <?php
+/* ----------------------------------------------- *
+ | [ AdminPHP ] Version : 2.0 beta
+ | 简单粗暴又不失高雅的迫真 OOP MVC 框架，，，
+ |
+ | URL     : https://www.adminphp.net/
+ * ----------------------------------------------- *
+ | Name    : AutoLoad (Class自动加载)
+ |
+ | Author  : Xlch88 (i@xlch.me)
+ | LICENSE : WTFPL http://www.wtfpl.net/about
+ * ----------------------------------------------- */
+
 namespace AdminPHP;
+
+use AdminPHP\Exception\AutoLoadException;
 
 class AutoLoad{
 	private static $registerAutoLoad = [];
@@ -7,94 +21,104 @@ class AutoLoad{
 	
 	public static function init(){
 		spl_autoload_register(['\\AdminPHP\\AutoLoad', 'load']);
+		
+		self::register('AdminPHP', adminphp);
+		self::register('App', appPath);
+		self::register('App\\Model', appPath . 'common/model');
+		self::register('App\\Lib', appPath . 'common/lib');
+		
+		self::register('', adminphp . 'libraries', 'none');
+		self::register('', appPath . 'common/lib', 'none');
 	}
 	
-	public static function register($class, $path, $prefix = '', $subfix = '.php'){
+	public static function register($class, $path, $first = 'lc', $prefix = '', $subfix = '.php'){
 		$path = [
 			'prefix'	=> $prefix,
 			'subfix'	=> $subfix,
-			'path'		=> $path . DIRECTORY_SEPARATOR
+			'path'		=> in_array(substr($path, -1), ['\\', '/']) ? $path : $path . DIRECTORY_SEPARATOR,
+			'first'		=> $first
 		];
 		
 		if(!is_dir($path['path'])){
 			return false;
 		}
 		
-		self::$registerAutoLoad[$class] = $path;
+		$class = substr($class, 0, 1) == '\\' ? $class : '\\' . $class;
+		
+		self::$registerAutoLoad[$class][] = $path;
+		
+		uksort(self::$registerAutoLoad, function($a, $b){
+			return strlen($a) > strlen($b) ? -1 : 1;
+		});
 		
 		return true;
 	}
 	
-	public static function load($className, $exception = true){
-		global $a;
-	
+	public static function load($className, $exception = true, $return = false){
+		$className = substr($className, 0, 1) == '\\' ? $className : '\\' . $className;
+		
 		if(class_exists($className, false)){
 			return;
 		}
 		
-		$file = [];
+		$files = [];
 		
-		foreach(self::$registerAutoLoad as $class => $path){
-			if(substr($className, 0, strlen($class)) == $class){
-				$file[] = $path['path'] . $path['prefix'] . str_replace('\\', '/', substr($className, strlen($class) + 1, strlen($className) + 1 - strlen($class))) . $path['subfix'];
-			}
-		}
-		
-		$path = explode('/', str_replace('\\', '/', $className));
-		
-		// App\Model\User
-		// App\Controller\IndexController
-		// App\Lib\QwQ
-		
-		// App\XLBook\Model\User
-		// App\XLBook\Controller\IndexController
-		// App\XLBook\Lib\QwQ
-		
-		// DB (adminphp/libraries)
-		// AdminPHP\Exception\ErrorException
-		
-		if($path[0] == 'App' && count($path) >= 3){
-			if(in_array($path[1], ['Controller', 'Model', 'Lib'])){
-				if($path[1] == 'Lib') $path[1] = 'libraries';
-				
-				$p = appPath . strtolower($path[1]) . DIRECTORY_SEPARATOR;
-				$p3 = appPath . $a . DIRECTORY_SEPARATOR . strtolower($path[1]) . DIRECTORY_SEPARATOR;
-				unset($path[0], $path[1]);
-				
-				$file[] = $p3 . implode(DIRECTORY_SEPARATOR, $path) . '.php';
-				$file[] = $p . implode(DIRECTORY_SEPARATOR, $path) . '.php';
-			}else{
-				if($path[2] == 'Lib') $path[2] = 'libraries';
-				
-				$p = appPath . lcfirst($path[1]) . DIRECTORY_SEPARATOR . strtolower($path[2]) . DIRECTORY_SEPARATOR;
-				unset($path[0], $path[1], $path[2]);
-				$file[] = $p . implode(DIRECTORY_SEPARATOR, $path) . '.php';
-			}
-		}else if($path[0] == 'AdminPHP' && count($path) >= 2){
-			if($path[1] == 'Lib') $path[1] = 'libraries';
-		  	if(isset($path[2])){
-				$path[1] = lcfirst($path[1]);
-			}
-			
-			$p = adminphp;
-			
-			unset($path[0]);
-			$file[] = $p . implode(DIRECTORY_SEPARATOR, $path) . '.php';
-		}else if(count($path) >= 1){
-			$file[] = adminphp . 'libraries' . DIRECTORY_SEPARATOR . implode(DIRECTORY_SEPARATOR, $path) . '.php';
-			$file[] = adminphp . implode(DIRECTORY_SEPARATOR, $path) . '.php';
-		}
-		
-		foreach($file as $file_){
-			if($file_ = realpath($file_)){
-				if(!in_array($file_, self::$included)){
-					include($file_);
-					self::$included[] = $file_;
+		foreach(self::$registerAutoLoad as $class => $paths){
+			foreach($paths as $index => $path){
+				if(substr($className, 0, strlen($class)) == $class){
+					$filepath = [];
+					
+					$className_ = explode('\\', substr($className, -(strlen($className) - strlen($class))));
+					$loadpathc = count(explode('\\', $className));
+					foreach($className_ as $index => $path_){
+						if(count($className_) == $index + 1){
+							$path_ = $path['prefix'] . $path_ . $path['subfix'];
+						}else{
+							switch($path['first']){
+								case 'lc':
+									$path_ = lcfirst($path_);
+								break;
+								
+								case 'uc':
+									$path_ = ucfirst($path_);
+								break;
+							}
+						}
+						
+						$filepath[] = $path_;
+					}
+					
+					$files[] = $path['path'] . implode(DIRECTORY_SEPARATOR, $filepath);
 				}
-				return;
 			}
 		}
-		if($exception)
-			throw new \Exception('can\'t autoload:' . $className . "\r\n" . print_r($file, true));
+		
+		$file = '';
+		foreach($files as $file){
+			if($file = realpath($file)){
+				if(!in_array($file, self::$included)){
+					if($return){
+						return $file;
+					}
+					
+					include($file);
+					self::$included[] = $file;
+				}
+				break;
+			}
+		}
+		
+		if($return){
+			return false;
+		}
+		
+		if(!class_exists($className, false) && $exception){
+			if($file){
+				throw new AutoLoadException(1, $className, $files, $file);
+			}else{
+				throw new AutoLoadException(0, $className, $files);
+			}
+		}
+		return false;
 	}
 }

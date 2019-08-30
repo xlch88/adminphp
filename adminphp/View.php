@@ -1,4 +1,16 @@
 <?php
+/* ----------------------------------------------- *
+ | [ AdminPHP ] Version : 2.0 beta
+ | 简单粗暴又不失高雅的迫真 OOP MVC 框架，，，
+ |
+ | URL     : https://www.adminphp.net/
+ * ----------------------------------------------- *
+ | Name    : View (视图、模板)
+ |
+ | Author  : Xlch88 (i@xlch.me)
+ | LICENSE : WTFPL http://www.wtfpl.net/about
+ * ----------------------------------------------- */
+
 namespace AdminPHP;
 
 use AdminPHP\Hook;
@@ -62,7 +74,7 @@ class View{
 		
 		$_templateFilePath	= $_isSystem ? '' : templatePath;
 		$_templateFile		= $templateFile_ . '.php';
-		Hook::doHook('template_echo', ['templateFilePath' => &$_templateFilePath, 'templateFile' => &$_templateFile, 'isSystem' => $_isSystem]);
+		Hook::do('template_echo', ['templateFilePath' => &$_templateFilePath, 'templateFile' => &$_templateFile, 'isSystem' => $_isSystem]);
 		
 		
 		$_file = $_templateFilePath . $_templateFile;

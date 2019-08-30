@@ -2,7 +2,7 @@
 namespace App\Controller;
 
 class IndexController{
-	public function hello(){
+	public function index(){
 		view('index/index', [
 			'text'	=> 'AdminPHP<br/>V2 Beta'
 		]);

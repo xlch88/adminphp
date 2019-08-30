@@ -1,7 +1,7 @@
 <html>
 	<head>
 		<meta charset="utf-8" />
-		<title>提示</title>
+		<title><?=l('提示'); ?></title>
 		<meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 		<style>
             body {
@@ -57,18 +57,17 @@
 			<h1><?=$notice?></h1>
 			
 			<?php if($time){ ?>
-			<p><?=$time; ?> 秒后返回上一页面...</p>
+			<p><?=l('%s 秒后返回上一页面...', $time); ?></p>
 			<?php } ?>
 			
 			<?php if(isset($go)){ ?>
-			<button id="go">跳转</button>
+			<button id="go"><?=l('跳转'); ?></button>
 			<?php }else{ ?>
-			<button id="go">返回上一页</button>
+			<button id="go"><?=l('返回上一页'); ?></button>
 			<?php } ?>
 		</div>
 		<hr />
 		<p>+ [ Powered By AdminPHP<sup>V2</sup> ] +</p>
-		
 		
 		
 		<script>

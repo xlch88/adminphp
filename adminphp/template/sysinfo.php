@@ -1,3 +1,4 @@
+<!-- 破!"' --></a></li></ul></button></div>
 <html lang=cn>
 	<div id="huaQ">
 		<!--
@@ -10,14 +11,12 @@
 			<title><?=$title; ?></title>
 			<META http-equiv="content-type" content="text/html; charset=UTF-8">
 			<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
-			
 			<style><?php include(adminphp . 'template/style.css'); ?></style>
 		</head>
 		<body class="<?=isset($errorInfo) ? 'exception' : ''; ?>">
 			<?php if(!isset($showTips) || $showTips){ ?>
 			<div class="info">
-				<div class="img">
-					<img src="<?=$yonakaPic; ?>">
+				<div class="img img_<?=$type; ?>">
 				</div>
 				<div class="code">
 					<p><span><?=$code; ?></span></p>
@@ -30,20 +29,20 @@
 							<?php foreach($more as $row){ ?>
 							<li><?=$row; ?></li>
 							<?php } ?>
-							<?php foreach($buttons as $index => $button){ ?>
-							<a href="<?=$button['href'];?>" target="<?=isset($button['target']) ? $button['target'] : '_self';?>">
-								<button class="<?=$button['type'];?>"><?=$button['title'];?></button>
-							</a>
-							<?php } ?>
 						</ul>
 					</div>
+					<?php foreach($buttons as $index => $button){ ?>
+					<a href="<?=$button['href'];?>" target="<?=isset($button['target']) ? $button['target'] : '_self';?>">
+						<button class="<?=$button['type'];?>"><?=$button['title'];?></button>
+					</a>
+					<?php } ?>
 				</div>
 			</div>
 			<?php } ?>
-			<?php if(isset($errorInfo)){ view(adminphp . 'template/exception', $errorInfo, 1); } ?>
+			<?php if(isset($errorInfo)){ extract($errorInfo); include(adminphp . 'template/exception.php'); } ?>
 			<?php if($autoJump){ ?>
 			<div class="info powered">
-				<span id="sec">2333</span>秒后将为您自动跳转... <span id="nowJump">[现在跳转]</span> <span id="noJump">[雅蠛蝶！等等]</span>
+				<?=l('%s 秒后将为您自动跳转...', '<span id="sec"></span>'); ?> <span id="nowJump"><?=l('[现在跳转]'); ?></span> <span id="noJump"><?=l('[雅蠛蝶！等等]'); ?></span>
 			</div>
 			<script>
 			url = "<?=$autoJump['url']?>";

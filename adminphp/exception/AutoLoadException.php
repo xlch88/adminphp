@@ -5,7 +5,7 @@
  |
  | URL     : https://www.adminphp.net/
  * ----------------------------------------------- *
- | Name    : Exception:View (异常类:模板、视图)
+ | Name    : Exception:AutoLoad (异常类:自动加载)
  |
  | Author  : Xlch88 (i@xlch.me)
  | LICENSE : WTFPL http://www.wtfpl.net/about
@@ -16,21 +16,22 @@ namespace AdminPHP\Exception;
 use AdminPHP\Exception\Exception;
 use AdminPHP\View;
 
-class ViewException extends Exception{
-    public function __construct($code, $filepath = '', $filename = '', $file = '')
+class AutoLoadException extends Exception{
+    public function __construct($code, $class, $tryFiles = [], $loadFile = '')
     {
 		$this->code = $code;
+		$this->tryFiles = $tryFiles;
 		
 		switch($this->code){
 			case 0:
-				$this->message = l('模板文件未找到！');
+				$this->message = l('无法自动加载类。');
+				$this->class = $class;
+			break;
+			
+			case 1:
+				$this->message = l('已加载类文件，但未成功加载类。');
+				$this->loadFile = $loadFile;
 			break;
 		}
-		
-		$this->template_filepath = $filepath;
-		$this->template_filename = $filename;
-		$this->template_file = $file;
-		$this->GlobalVars = View::getGlobalVar();
-		$this->Vars = View::getVar();
     }
 }

@@ -1,8 +1,21 @@
 <?php
+/* ----------------------------------------------- *
+ | [ AdminPHP ] Version : 2.0 beta
+ | 简单粗暴又不失高雅的迫真 OOP MVC 框架，，，
+ |
+ | URL     : https://www.adminphp.net/
+ * ----------------------------------------------- *
+ | Name    : PerformanceStatistics (性能统计模块)
+ |
+ | Author  : Xlch88 (i@xlch.me)
+ | LICENSE : WTFPL http://www.wtfpl.net/about
+ * ----------------------------------------------- */
+
 namespace AdminPHP;
 
 class PerformanceStatistics{
 	public static $show = true;
+	public static $enable = true;
 	
 	public static $log = [];
 	public static $begin = [];
@@ -18,6 +31,8 @@ class PerformanceStatistics{
 	}
 	
 	public static function log($name = null){
+		if(!self::$enable) return;
+		
 		self::$log[] = [
 			'name'		=> $name,
 			'time'		=> self::fn() - self::$begin['time'],
@@ -27,20 +42,30 @@ class PerformanceStatistics{
 	}
 	
 	public static function show(){
-		if(!self::$show) return;
+		if(!self::$enable || !self::$show) return;
 		
 		echo "\r\n" . '<!-- AdminPHP - 性能统计' . "\r\n";
 		foreach(self::$log as $index => $row){
 			echo '#' . $index . ($row['name'] ? ' - ' . $row['name'] : '') . "\r\n";
-			echo '内存：' . round($row['memory'], 2) . ' KB' . "\r\n";
-			echo '用时：' . round($row['time'] * 1000, 2) . ' ms' . "\r\n";
-			echo '查询：' . $row['sql'] . ' 次' . "\r\n\r\n";
+			echo 'Memory   ：' . round($row['memory'], 2) . ' KB' . "\r\n";
+			echo 'Time     ：' . round($row['time'] * 1000, 2) . ' ms' . "\r\n";
+			echo 'SQLQuery ：' . $row['sql'] . ' 次' . "\r\n\r\n";
 		}
-		echo 'AutoLoad:' . "\r\n";
+		
+		echo 'AutoLoad: ' . count(AutoLoad::$included) . "\r\n";
 		foreach(AutoLoad::$included as $index => $file){
 			echo '#' . $index . ' - ' . str_replace(root, '', $file) . "\r\n";
 		}
-		echo "\r\n\r\n" . '-->';
+		
+		echo "\r\n";
+		
+		echo 'Language Key Count:' . count(Language::$lang) . "\r\n";
+		echo 'Language Files: ' . count(Language::$loadFiles) . "\r\n";
+		foreach(Language::$loadFiles as $index => $file){
+			echo '#' . $index . ' - ' . str_replace(root, '', $file) . "\r\n";
+		}
+		
+		echo "\r\n" . '-->';
 	}
 	
 	private static function fn(){

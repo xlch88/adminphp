@@ -47,6 +47,8 @@
 			
 			<img src="<?=url('verifyCode/get'); ?>">
 			
+			<p>数据库连接状态: <?php var_dump($dbStatus); ?></p>
+			
             <br/>
             <br/>
 			

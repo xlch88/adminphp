@@ -1,11 +1,43 @@
 <?php
+/* ----------------------------------------------- *
+ | [ AdminPHP ] Version : 2.0 beta
+ | 简单粗暴又不失高雅的迫真 OOP MVC 框架，，，
+ |
+ | URL     : https://www.adminphp.net/
+ * ----------------------------------------------- *
+ | Name    : ErrorManager (错误管理模块)
+ |
+ | Author  : Xlch88 (i@xlch.me)
+ | LICENSE : WTFPL http://www.wtfpl.net/about
+ * ----------------------------------------------- */
+
 namespace AdminPHP;
 
 use AdminPHP\Exception\ErrorException;
 use AdminPHP\Router;
 
 class ErrorManager{
-	static public function init(){
+	static private $debug = false;
+	
+	/*
+		此信息应在App运行后进行修改。
+		这样如果是框架出错则会显示框架信息，App运行出现问题则显示作者信息。
+	*/
+	static public $adminInfo = [];
+	
+	static public function init($debug){
+		self::$adminInfo = l('@adminphp.errorManager.adminInfo', [], [
+			'adminphp框架'		=> '<a href="https://www.adminphp.net/" target="_blank">https://www.adminphp.net/</a>',
+			'adminphp框架作者'	=> 'Xlch88 (i@xlch.me)',
+		]);
+		self::$debug = $debug;
+		
+		if(self::$debug == true){
+			error_reporting(E_ALL);
+		}else{
+			error_reporting(E_ERROR | E_WARNING | E_PARSE);
+		}
+		
 		set_error_handler('\\AdminPHP\\ErrorManager::error');
 		set_exception_handler('\\AdminPHP\\ErrorManager::exception');
 	}
@@ -16,7 +48,7 @@ class ErrorManager{
 		}
 		
 		if(!class_exists('\\AdminPHP\\Exception\\Error\\WarningException', false)){
-			include(adminphp . 'exception' . DIRECTORY_SEPARATOR . 'Error' . DIRECTORY_SEPARATOR . 'Errors.php');
+			include(adminphp . 'exception' . DIRECTORY_SEPARATOR . 'Errors.php');
 		}
 		
 		switch($errno){
@@ -41,8 +73,6 @@ class ErrorManager{
 	}
 	
 	static public function exception($ex){
-		header('HTTP/1.1 500 Internal Server Error');
-		
 		\AdminPHP\PerformanceStatistics::log('AdminPHP:error_manager');
 		
 		$info = [
@@ -55,7 +85,8 @@ class ErrorManager{
 			'trace'			=> self::formatTrace($ex->getTrace()),
 			'removeTrace'	=> isset($ex->removeTraceCount) ? $ex->removeTraceCount : 0,
 			'exceptionVars'	=> self::getExceptionVars($ex),
-			'url'			=> urldecode(Router::getUrl())
+			'url'			=> urldecode(Router::getUrl()),
+			'debug'			=> self::$debug
 		];
 		
 		if($info['removeTrace'] > 0){
@@ -64,14 +95,28 @@ class ErrorManager{
 		
 		$info = self::hiddenRootPath($info);
 		
-		$sysinfo = [
+		$sysinfo = l('@adminphp.sysinfo.statusCode.500', [], [
+			'title'		=> '系统故障',
+			'moreTitle'	=> '啊哈... 出了一点点小问题_(:з」∠)_',
+			'more'		=> [
+				'程序猿/媛写错了什么东西。',
+				'发生了一些不可预料的事情。',
+				'如果你发现了有什么不对，请迅速联系站点管理员',
+				'如果没什么不对的，那就再试一次看看？'
+			],
+		
 			'code'		=> '500',
 			'type'		=> 'error', //[info, error, success]
-			'title'		=> '系统故障',
-			'showTips'	=> false,
-			'errorInfo'	=> $info
-		];
+			'title'		=> '系统故障'
+		]);
+		
+		$sysinfo['showTips'] = !self::$debug;
+		$sysinfo['errorInfo'] = $info;
+		$sysinfo['adminInfo'] = self::$adminInfo;
+		
+		
 		sysinfo($sysinfo);
+		
 		die();
 	}
 	
@@ -164,7 +209,7 @@ class ErrorManager{
 		
 		$line = 0;
 		
-		for ($i = 1; $i < $startLine; ++$i) { // 跳过前$startLine行
+		for ($i = 1; $i < $startLine; ++$i) {
 			$line++;
 			fgets($fp);
 		}
