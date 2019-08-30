@@ -18,28 +18,15 @@ use AdminPHP\Router;
 
 class ErrorManager{
 	static private $debug = false;
-	
-	/*
-		此信息应在App运行后进行修改。
-		这样如果是框架出错则会显示框架信息，App运行出现问题则显示作者信息。
-	*/
 	static public $adminInfo = [];
 	
-	static public function init($debug){
-		self::$adminInfo = l('@adminphp.errorManager.adminInfo', [], [
+	static public function init(){
+		self::$adminInfo = l('@adminphp.errorManager.adminInfo', [], AdminPHP::$config['adminInfo'] ?: [
 			'adminphp框架'		=> '<a href="https://www.adminphp.net/" target="_blank">https://www.adminphp.net/</a>',
 			'adminphp框架作者'	=> 'Xlch88 (i@xlch.me)',
 		]);
-		self::$debug = $debug;
 		
-		if(self::$debug == true){
-			error_reporting(E_ALL);
-		}else{
-			error_reporting(E_ERROR | E_WARNING | E_PARSE);
-		}
-		
-		set_error_handler('\\AdminPHP\\ErrorManager::error');
-		set_exception_handler('\\AdminPHP\\ErrorManager::exception');
+		self::$debug = AdminPHP::$config['debug'];
 	}
 	
 	static public function error(int $errno, string $errstr, string $errfile, int $errline){

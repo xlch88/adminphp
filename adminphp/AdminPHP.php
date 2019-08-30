@@ -64,7 +64,9 @@ class AdminPHP{
 		'language'	=> [
 			'use'			=> 'zh-CN',
 			'cookieName'	=> 'adminphp_language'
-		]
+		],
+		
+		'adminInfo'	=> []
 	];
 	
 	static public function init($config){
@@ -90,26 +92,26 @@ class AdminPHP{
 		include('functions/functions.helper.php');
 		include('functions/functions.safe.php');
 		include('functions/functions.adminphp.php');
-		Hook::do('adminphp_init_functions_end');
-		PerformanceStatistics::log('AdmionPHP:init_functions_end');
+		Hook::do('adminphp_init_functions');
+		PerformanceStatistics::log('AdmionPHP:init_functions');
 
 		// Language ------------------------------------------------------------------------------------------
 		Language::init(self::$config['language']['use'], self::$config['language']['cookieName']);
-		PerformanceStatistics::log('AdmionPHP:init_language_end');
+		PerformanceStatistics::log('AdmionPHP:init_language');
 		
 		// ErrorManager ------------------------------------------------------------------------------------
-		ErrorManager::init(self::$config['debug']);
+		self::registerErrorManager();
 		
 		// Load App Functions File -------------------------------------------------------------------------
 		if(is_file(appPath . 'functions.php'))
 			include(appPath . 'functions.php');
 
-		Hook::do('app_init_functions_end');
-		PerformanceStatistics::log('AdmionPHP:init_function_end');
+		Hook::do('app_init_functions');
+		PerformanceStatistics::log('AdmionPHP:init_app_function');
 
 		// Router ------------------------------------------------------------------------------------------
 		Router::init(self::$config['router']);
-		PerformanceStatistics::log('AdmionPHP:init_router_end');
+		PerformanceStatistics::log('AdmionPHP:init_router');
 
 		// AntiCSRF ----------------------------------------------------------------------------------------
 		if(self::$config['AntiCSRF']['enable']){
@@ -123,7 +125,7 @@ class AdminPHP{
 		
 		// Run App -----------------------------------------------------------------------------------------
 		Hook::do('app_init');
-		PerformanceStatistics::log('AdmionPHP:app_init_end');
+		PerformanceStatistics::log('AdmionPHP:app_init');
 		
 		// Run Controller ----------------------------------------------------------------------------------
 		Controller::init();
@@ -140,5 +142,27 @@ class AdminPHP{
 	static private function define(){
 		defined('appPath') 		or define('appPath',		self::$config['path']['app']		= self::path(self::$config['path']['app']));
 		defined('templatePath')	or define('templatePath',	self::$config['path']['template']	= self::path(self::$config['path']['template']));
+	}
+	
+	/* 没有错误或异常的时候，没必要加载ErrorManager，所以把回调注册在这里。 */
+	static private function registerErrorManager(){
+		if(AdminPHP::$config['debug'] == true){
+			error_reporting(E_ALL);
+		}else{
+			error_reporting(E_ERROR | E_WARNING | E_PARSE);
+		}
+		
+		set_error_handler('\\AdminPHP\\AdminPHP::error');
+		set_exception_handler('\\AdminPHP\\AdminPHP::exception');
+	}
+	
+	static public function exception($ex){
+		ErrorManager::init();
+		ErrorManager::exception($ex);
+	}
+	
+	static public function error(int $errno, string $errstr, string $errfile, int $errline){
+		ErrorManager::init();
+		ErrorManager::error($errno, $errstr, $errfile, $errline);
 	}
 }
