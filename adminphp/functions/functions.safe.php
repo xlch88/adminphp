@@ -30,7 +30,7 @@ function safe_html($text){
 * @return string
 */
 function safe_sql($text){
-	return addslashes($text);
+	return \DB::safe($text);
 }
 
 /**  
@@ -132,18 +132,4 @@ function safe2($var, string $method){
 	}
 	
 	return $var;
-}
-
-function daddslashes($string, $force = 0, $strip = FALSE) {
-	!defined('MAGIC_QUOTES_GPC') && define('MAGIC_QUOTES_GPC', get_magic_quotes_gpc());
-	if(!MAGIC_QUOTES_GPC || $force) {
-		if(is_array($string)) {
-			foreach($string as $key => $val) {
-				$string[$key] = daddslashes($val, $force, $strip);
-			}
-		} else {
-			$string = addslashes($strip ? stripslashes($string) : $string);
-		}
-	}
-	return $string;
 }
