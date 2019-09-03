@@ -30,7 +30,100 @@ class Router{
 	];
 	
 	static private $method2route = [];
+
+	/**
+	 * 置路由值
+	 * 
+	 * @param array $routes 路由数组
+	 * @return void
+	 */
+	static public function setRoutes($routes){
+		self::$routeList = $routes;
+	}
 	
+	/**
+	 * 添加路由
+	 * 
+	 * @param string $route      路由
+	 * @param string $controller 路由位置
+	 * @return void
+	 */
+	static public function addRoute($route, $controller){
+		self::$routeList[$route] = $controller;
+	}
+	
+	/**
+	 * 添加多个路由
+	 * 
+	 * @param array $route 路由数组
+	 * @return void
+	 */
+	static public function addRoutes($routes){
+		self::$routeList = array_merge(self::$routeList, $routes);
+	}
+	
+	/**
+	 * 设置正则列表
+	 * 
+	 * @param array $regexList 正则表达式数组
+	 * @return void
+	 */
+	static public function setRegex($regexList){
+		self::$regexList = $regexList;
+	}
+	
+	/**
+	 * 添加正则
+	 * 
+	 * @param string $name  正则名
+	 * @param string $regex 正则表达式
+	 * @return void
+	 */
+	static public function addRegex($name, $regex){
+		self::$regexList[$name] = $regex;
+	}
+	
+	/**
+	 * 添加多个正则
+	 * 
+	 * @param array $regexList 正则表达式数组
+	 * @return void
+	 */
+	static public function addRegexes($addRegexes){
+		self::$regexList = array_merge(self::$regexList, $addRegexes);
+	}
+	
+	/**
+	 * 发生错误的处理
+	 * 
+	 * @return void
+	 */
+	static private function notFound(){
+		if(Hook::do('router_error')){ //用户自定义处理
+			return;
+		}
+		
+		sysinfo(l('@adminphp.sysinfo.statusCode.404', [], [
+			'code'		=> 404,
+			'type'		=> 'error',
+			'title'		=> '啊哈... 出了一点点小问题_(:з」∠)_',
+			'info'		=> '页面找不到啦...',
+			'moreTitle'	=> '可能的原因：',
+			'more'		=> [
+				'该页面已移至其他地址',
+				'手滑输错了地址',
+				'你在用脸滚键盘',
+				'你的猫在键盘漫步'
+			]
+		]));
+	}
+	
+	/**
+	 * 初始化路由
+	 * 
+	 * @param array $config 配置
+	 * @return void
+	 */
 	static public function init($config){
 		global $a,$c,$m;
 		
@@ -68,46 +161,12 @@ class Router{
 		$m = self::$methodPath['m'] = (self::$methodPath['m'] ?: self::$config['default']['m']);
 	}
 	
-	static private function notFound(){
-		if(Hook::do('router_error')){ //用户自定义处理
-			return;
-		}
-		
-		sysinfo(l('@adminphp.sysinfo.statusCode.404', [], [
-			'code'		=> 404,
-			'type'		=> 'error',
-			'title'		=> '啊哈... 出了一点点小问题_(:з」∠)_',
-			'info'		=> '页面找不到啦...',
-			'moreTitle'	=> '可能的原因：',
-			'more'		=> [
-				'该页面已移至其他地址',
-				'手滑输错了地址',
-				'你在用脸滚键盘',
-				'你的猫在键盘漫步'
-			]
-		]));
-	}
-	
-	static public function setRoutes($routes){
-		self::$routeList = $routes;
-	}
-	static public function addRoute($route, $controller){
-		self::$routeList[$route] = $controller;
-	}
-	static public function addRoutes($routes){
-		self::$routeList = array_merge(self::$routeList, $routes);
-	}
-	
-	static public function setRegex($regexList){
-		self::$regexList = $regexList;
-	}
-	static public function addRegex($name, $regex){
-		self::$regexList[$name] = $regex;
-	}
-	static public function addRegexes($addRegexes){
-		self::$regexList = array_merge(self::$regexList, $addRegexes);
-	}
-	
+	/**
+	 * 初始化路由值
+	 * 
+	 * @param array $routeList 路由列表
+	 * @return array
+	 */
 	static private function getFinalRoute($routeList){
 		$finalRoute = [];
 		$method2route = [];
@@ -162,6 +221,11 @@ class Router{
 		return [$finalRoute, $method2route];
 	}
 	
+	/**
+	 * 获取uri
+	 * 
+	 * @return string
+	 */
 	static public function get_uri(){
 		$return = '';
 		
@@ -191,6 +255,13 @@ class Router{
 		return $return;
 	}
 	
+	/**
+	 * 获取完整url
+	 * 
+	 * @param string $url  url地址
+	 * @param string $args url参数
+	 * @return string
+	 */
 	static public function mkurl($url, $args){
 		$return = self::getUrl(false);
 		
@@ -217,6 +288,11 @@ class Router{
 		return $return . ($args ? (strpos($return, '?') !== FALSE ? '&' . $args : '?' . $args) : '');
 	}
 	
+	/**
+	 * 从uri匹配路由地址
+	 * 
+	 * @return mixed
+	 */
 	static private function parse_uri(){
 		$uri = self::get_uri();
 		
@@ -235,6 +311,15 @@ class Router{
 		return false;
 	}
 	
+	/**
+	 * 生成地址
+	 * 这才是精髓，，，
+	 * 函数别名: url()
+	 * 
+	 * @param string $route 指向位置，“应用名/控制器名/方法名”
+	 * @param string $args  参数
+	 * @return string
+	 */
 	static public function url($route = '', $args = ''){
 		global $c, $m, $a;
 		
@@ -272,7 +357,13 @@ class Router{
 		}
 	}
 
-	//文本转换为实际路由
+	/**
+	 * 文本转换为实际位置
+	 * 
+	 * @param string  $router 指向位置，“应用名/控制器名/方法名”
+	 * @param boolean $iskey  返回值是否带键
+	 * @return array
+	 */
 	static public function real_url($router, $iskey = false){
 		$router = explode('/', $router);
 		
@@ -295,13 +386,22 @@ class Router{
 		return $iskey ? $return : array_values($return);
 	}
 
-	//获取访问的url
+	/**
+	 * 获取当前页面地址
+	 * 
+	 * @return string
+	 */
 	static public function getUrl($uri = true){
 		$return = (self::is_ssl() ? 'https://' : 'http://') . (explode(':', $_SERVER['HTTP_HOST'])[0]) . ($_SERVER['SERVER_PORT'] != 80 && $_SERVER['SERVER_PORT'] != 443 ? ':' . $_SERVER['SERVER_PORT'] : '') . ($uri ? $_SERVER['REQUEST_URI'] : '/');
 		
 		return $return;
 	}
 
+	/**
+	 * 当前是否使用SSL加密(https)
+	 * 
+	 * @return boolean
+	 */
 	static public function is_ssl() {
 		if(isset($_SERVER['HTTPS']) && ('1' == $_SERVER['HTTPS'] || 'on' == strtolower($_SERVER['HTTPS']))){
 			return true;

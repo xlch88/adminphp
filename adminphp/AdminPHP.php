@@ -19,6 +19,7 @@ use AdminPHP\PerformanceStatistics;
 use AdminPHP\Controller;
 use AdminPHP\Language;
 use AdminPHP\AntiCSRF;
+use AdminPHP\Exception\InitException;
 
 class AdminPHP{
 	/* ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ *\
@@ -28,7 +29,7 @@ class AdminPHP{
 	\* ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ */
 	static public $config = [
 		'path'		=> [
-			'template'	=> root . 'template',
+			'template'	=> '',
 			'app'		=> root . 'app'
 		],
 			
@@ -69,6 +70,11 @@ class AdminPHP{
 		'adminInfo'	=> []
 	];
 	
+	/**
+	 * 初始化
+	 * @param array $config 配置信息
+	 * @return void
+	 */
 	static public function init($config){
 		global $a, $c, $m;
 		self::$config = array_merge(self::$config, $config);
@@ -135,16 +141,30 @@ class AdminPHP{
 		\AdminPHP\PerformanceStatistics::show();
 	}
 	
-	static private function path($path){
-		return in_array(substr($path, -1), ['/', '\\']) ? $path : $path . DIRECTORY_SEPARATOR;
-	}
-	
+	/**
+	 * 定义常量
+	 * 
+	 * @return void
+	 */
 	static private function define(){
-		defined('appPath') 		or define('appPath',		self::$config['path']['app']		= self::path(self::$config['path']['app']));
-		defined('templatePath')	or define('templatePath',	self::$config['path']['template']	= self::path(self::$config['path']['template']));
+		if(!realpath(self::$config['path']['app'])){
+			throw new InitException(0, self::$config['path']['app']);
+		}
+		
+		if(self::$config['path']['template'] != '' && !realpath(self::$config['path']['template'])){
+			throw new InitException(1, self::$config['path']['template']);
+		}
+		
+		defined('appPath') 		or define('appPath',		self::$config['path']['app']		= realpath(self::$config['path']['app']) . DIRECTORY_SEPARATOR);
+		defined('templatePath')	or define('templatePath',	self::$config['path']['template']	= realpath(self::$config['path']['template']) . DIRECTORY_SEPARATOR);
 	}
 	
-	/* 没有错误或异常的时候，没必要加载ErrorManager，所以把回调注册在这里。 */
+	/**
+	 * 注册错误管理
+	 * 没有错误或异常的时候，没必要加载ErrorManager，所以把回调注册在这里。
+	 * 
+	 * @return void
+	 */
 	static private function registerErrorManager(){
 		if(AdminPHP::$config['debug'] == true){
 			error_reporting(E_ALL);
@@ -156,11 +176,26 @@ class AdminPHP{
 		set_exception_handler('\\AdminPHP\\AdminPHP::exception');
 	}
 	
+	/**
+	 * 异常回调
+	 * 
+	 * @param exception $ex 异常
+	 * @return void
+	 */
 	static public function exception($ex){
 		ErrorManager::init();
 		ErrorManager::exception($ex);
 	}
 	
+	/**
+	 * 错误回调
+	 * 
+	 * @param int    $errno   错误代码
+	 * @param string $errstr  错误信息
+	 * @param string $errfile 错误文件
+	 * @param int    $errline 错误所在行数
+	 * @return void
+	 */
 	static public function error(int $errno, string $errstr, string $errfile, int $errline){
 		ErrorManager::init();
 		ErrorManager::error($errno, $errstr, $errfile, $errline);

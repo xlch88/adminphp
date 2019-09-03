@@ -20,31 +20,77 @@ class View{
 	private static $globalVar = [];
 	private static $var = [];
 	
+	public static $subfix = '.php';
+	
+	/**
+	 * 获取已映射的全局变量
+	 * 
+	 * @return array
+	 */
 	public static function getGlobalVar(){
 		return self::$globalVar;
 	}
 	
+	/**
+	 * 获取注册的变量
+	 * 
+	 * @return array
+	 */
 	public static function getVar(){
 		return self::$var;
 	}
 	
+	/**
+	 * 添加映射全局变量
+	 * 
+	 * @param string $var 变量名
+	 * @return void
+	 */
 	public static function addGlobalVar($var){
 		self::$globalVar[] = $var;
 	}
 	
+	/**
+	 * 置映射全局变量
+	 * 
+	 * @param array $varList 变量名列表
+	 * @return void
+	 */
 	public static function setGlobalVars($varList){
 		self::$globalVar = $varList;
 	}
 	
+	/**
+	 * 添加变量
+	 * 
+	 * @param array $var_  变量名
+	 * @param array $value 值,可为函数
+	 * @return void
+	 */
 	public static function setVar($var_, $value){
 		self::$var[$var_] = &$value;
 	}
 	
+	/**
+	 * 置变量列表
+	 * 
+	 * @param array $varList 变量列表
+	 * @return void
+	 */
 	public static function setVars($varList){
 		self::$var = $varList;
 	}
 	
-	public static function view($templateFile_, $args = [], $_isSystem = 0){
+	/**
+	 * 输出模板
+	 * 函数别名: view()
+	 * 
+	 * @param string  $_templateFile 模板文件
+	 * @param array   $args          参数
+	 * @param boolean $_isRoot       是否从根目录
+	 * @return void
+	 */
+	public static function view($_templateFile, $args = [], $_isRoot = 0){
 		global $a, $c, $m;
 		
 		foreach(self::$globalVar as $var____){
@@ -72,9 +118,9 @@ class View{
 			}
 		}
 		
-		$_templateFilePath	= $_isSystem ? '' : templatePath;
-		$_templateFile		= $templateFile_ . '.php';
-		Hook::do('template_echo', ['templateFilePath' => &$_templateFilePath, 'templateFile' => &$_templateFile, 'isSystem' => $_isSystem]);
+		$_templateFilePath	= $_isRoot ? '' : templatePath;
+		$_templateFile		= $_templateFile . self::$subfix;
+		Hook::do('template_echo', ['templateFilePath' => &$_templateFilePath, 'templateFile' => &$_templateFile, 'isRoot' => $_isRoot]);
 		
 		
 		$_file = $_templateFilePath . $_templateFile;

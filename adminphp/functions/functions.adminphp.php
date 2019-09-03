@@ -11,26 +11,81 @@
  | LICENSE : WTFPL http://www.wtfpl.net/about
  * ----------------------------------------------- */
 
-function view($templateFile_, $args = [], $isSystem = 0){
-	return \AdminPHP\View::view($templateFile_, $args, $isSystem);
+/**
+ * 输出模板
+ * 实际位置:\AdminPHP\View::view()
+ * 
+ * @param string  $_templateFile 模板文件
+ * @param array   $args          参数
+ * @param boolean $_isRoot       是否从根目录
+ * @return void
+ */
+function view($templateFile_, $args = [], $isRoot = false){
+	return \AdminPHP\View::view($templateFile_, $args, $isRoot);
 }
 
+/**
+ * 生成地址
+ * 实际位置:\AdminPHP\Router::url()
+ * 
+ * @param string $route 指向位置，“应用名/控制器名/方法名”
+ * @param string $args  参数
+ * @return string
+ */
 function url($router = '', $args = ''){
 	return \AdminPHP\Router::url($router, $args);
 }
 
+/**
+ * 执行钩子
+ * 函数别名: do_hook()
+ * 实际位置:\AdminPHP\Hook::do()
+ * 
+ * @param string $id   钩子ID
+ * @param array  $args 参数们
+ * @return boolean
+ */
 function do_hook($id, $args = []){
 	return \AdminPHP\Hook::do($id, $args);
 }
 
+/**
+ * 将函数添加到钩子队列
+ * 越早添加的越早被执行
+ * 若函数返回FALSE(不包含空) 则停止执行下一个钩子
+ * 若函数返回TRUE 则停止执行并返回TRUE
+ * 实际位置:\AdminPHP\Hook::add()
+ * 
+ * @param string   $id       钩子ID
+ * @param function $function 回调函数
+ * @return void
+ */
 function add_hook($id, $function){
 	return \AdminPHP\Hook::add($id, $function);
 }
 
+/**
+ * 多语言处理
+ * 若未从语言字典中找到$text,则使用$default,若没有传入$default则直接处理$text.
+ * 实际位置:\AdminPHP\Language::languagePrintf()
+ *
+ * @param string $value   语言原文或者数组路径
+ * @param array  $args    参数
+ * @param mixed  $default 默认值
+ * @return mixed
+ */
 function l($value, $args = [], $default = null){
 	return \AdminPHP\Language::languagePrintf($value, $args, $default);
 }
 
+/**
+ * 获取参数
+ * 
+ * @param string $i      参数键值
+ * @param string $method 类型[1/get, 2/post, 0/all, args] 其中args为路由值
+ * @param mixed  $filter 过滤，支持functions.safe内的函数，支持多个使用","分割。若传入数组则仅限数组内的值，若都不匹配则返回第一个值
+ * @return mixed
+ */
 function i($i, $method = 'all', $filter = ''){
 	$return = null;
 	
@@ -91,6 +146,14 @@ function i($i, $method = 'all', $filter = ''){
 	return $return;
 }
 
+/**
+ * 输出系统提示
+ *
+ * @param string $notice 提示内容
+ * @param string $go     跳转到的页面
+ * @param int    $time   跳转倒计时(秒)
+ * @return void
+ */
 function notice($notice, $go = '', $time = 0){
 	$notice = [
 		'notice'	=>	$notice,
@@ -110,6 +173,13 @@ function notice($notice, $go = '', $time = 0){
 	die();
 }
 
+/**
+ * 输出系统页面
+ * 比较丰富美观的系统页面
+ *
+ * @param array $args 参数列表
+ * @return void
+ */
 function sysinfo($args = []){
 	if(!isset($args['title'])){
 		switch($args['type']){

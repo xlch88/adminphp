@@ -5,7 +5,7 @@
  |
  | URL     : https://www.adminphp.net/
  * ----------------------------------------------- *
- | Name    : Exception (异常类父级)
+ | Name    : Exception:Init (异常类:初始化)
  |
  | Author  : Xlch88 (i@xlch.me)
  | LICENSE : WTFPL http://www.wtfpl.net/about
@@ -13,23 +13,22 @@
 
 namespace AdminPHP\Exception;
 
-class Exception extends \Exception{
-	public $removeTraceCount = 0;
-	
-	/**
-	 * 获取参数
-	 *
-	 * @return array
-	 */
-	public function getValues(){
-		$return = [];
+use AdminPHP\Exception\Exception;
+
+class InitException extends Exception{
+    public function __construct($code, $path = '')
+    {
+		$this->code = $code;
+		$this->path = $path;
 		
-		foreach($this as $key => $value){
-			if(!in_array($key, ['code', 'message', 'file', 'line', 'removeTraceCount', 'trace'])){
-				$return[$key] = $value;
-			}
+		switch($this->code){
+			case 0:
+				$this->message = l('应用目录不存在！');
+			break;
+			
+			case 1:
+				$this->message = l('模板目录不存在！');
+			break;
 		}
-		
-		return $return;
-	}
+    }
 }

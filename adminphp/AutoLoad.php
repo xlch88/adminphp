@@ -19,6 +19,11 @@ class AutoLoad{
 	private static $registerAutoLoad = [];
 	public static $included = [];
 	
+	/**
+	 * 初始化类自动加载
+	 * 
+	 * @return void
+	 */
 	public static function init(){
 		spl_autoload_register(['\\AdminPHP\\AutoLoad', 'load']);
 		
@@ -31,11 +36,21 @@ class AutoLoad{
 		self::register('', appPath . 'common/lib', 'none');
 	}
 	
+	/**
+	 * 注册类自动加载
+	 * 
+	 * @param string $class    命名空间
+	 * @param string $path     文件加载路径
+	 * @param string $first|lc 路径首字母处理(lc = 首字母转换小写, uc = 首字母大写)
+	 * @param string $prefix   文件名前缀
+	 * @param string $subfix   文件名后缀
+	 * @return void
+	 */
 	public static function register($class, $path, $first = 'lc', $prefix = '', $subfix = '.php'){
 		$path = [
 			'prefix'	=> $prefix,
 			'subfix'	=> $subfix,
-			'path'		=> in_array(substr($path, -1), ['\\', '/']) ? $path : $path . DIRECTORY_SEPARATOR,
+			'path'		=> realpath($path) . DIRECTORY_SEPARATOR,
 			'first'		=> $first
 		];
 		
@@ -54,6 +69,16 @@ class AutoLoad{
 		return true;
 	}
 	
+	/**
+	 * 加载文件
+	 * PHP会在找不到类的时候自动回调该函数
+	 * 也可以手动执行该函数，获取类的文件路径
+	 * 
+	 * @param string $class  类名
+	 * @param string $path   未找到文件/发生错误后是否抛出异常
+	 * @param string $return 不进行加载,只返回文件名
+	 * @return void
+	 */
 	public static function load($className, $exception = true, $return = false){
 		$className = substr($className, 0, 1) == '\\' ? $className : '\\' . $className;
 		

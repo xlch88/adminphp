@@ -20,6 +20,12 @@ class ErrorManager{
 	static private $debug = false;
 	static public $adminInfo = [];
 	
+	/**
+	 * 初始化错误管理
+	 * 该方法会在发生错误/异常的时候进行调用
+	 * 
+	 * @return void
+	 */
 	static public function init(){
 		self::$adminInfo = AdminPHP::$config['adminInfo'] ?: l('@adminphp.errorManager.adminInfo', [], [
 			'adminphp框架'		=> '<a href="https://www.adminphp.net/" target="_blank">https://www.adminphp.net/</a>',
@@ -29,6 +35,15 @@ class ErrorManager{
 		self::$debug = AdminPHP::$config['debug'];
 	}
 	
+	/**
+	 * 错误回调
+	 * 
+	 * @param int    $errno   错误代码
+	 * @param string $errstr  错误信息
+	 * @param string $errfile 错误文件
+	 * @param int    $errline 错误所在行数
+	 * @return void
+	 */
 	static public function error(int $errno, string $errstr, string $errfile, int $errline){
 		if (!(error_reporting() & $errno)) {
 			return false;
@@ -59,6 +74,12 @@ class ErrorManager{
 		return true;
 	}
 	
+	/**
+	 * 异常回调
+	 * 
+	 * @param exception $ex 异常
+	 * @return void
+	 */
 	static public function exception($ex){
 		\AdminPHP\PerformanceStatistics::log('AdminPHP:error_manager');
 		
@@ -107,6 +128,13 @@ class ErrorManager{
 		die();
 	}
 	
+	/**
+	 * 获取异常参数并格式化返回
+	 * 用来获取\AdminPHP\Exception\Exception类的异常自定义值
+	 * 
+	 * @param exception $ex 异常
+	 * @return array
+	 */
 	static private function getExceptionVars($ex){
 		$return = [];
 		
@@ -135,6 +163,13 @@ class ErrorManager{
 		return $return;
 	}
 	
+	/**
+	 * 格式化函数参数
+	 * 
+	 * @param array $arr    参数们
+	 * @param int   $strlen 文本长度
+	 * @return array
+	 */
 	static private function formatArgs($arr, $strlen = 20){
 		$args = [];
 		
@@ -149,6 +184,12 @@ class ErrorManager{
 		return $args;
 	}
 	
+	/**
+	 * 格式化Trace
+	 * 
+	 * @param array $trace PHP异常追踪信息
+	 * @return array
+	 */
 	static private function formatTrace($trace){
 		foreach($trace as $i => $row){
 			$trace[$i]['file'] = isset($row['file']) ? $row['file'] : 'NO FILE';
@@ -161,6 +202,13 @@ class ErrorManager{
 		return $trace;
 	}
 	
+	/**
+	 * 把任何类型的值转换为文本型
+	 * 
+	 * @param mixed $var    值
+	 * @param int   $strlen 最大长度
+	 * @return mixed
+	 */
 	static private function varToString($var, $strlen = 20){
 		if(is_string($var)){
 			$var = htmlspecialchars('"' . ($strlen != 0 && mb_strlen($var, 'UTF-8') > $strlen ? mb_substr($var, 0, $strlen) . '...' : $var) . '"');
@@ -178,6 +226,12 @@ class ErrorManager{
 		return $var;
 	}
 	
+	/**
+	 * 隐藏根路径
+	 * 
+	 * @param mixed $arr 值
+	 * @return mixed
+	 */
 	static private function hiddenRootPath($arr){
 		if(is_array($arr)){
 			foreach($arr as $index => $value){
@@ -190,6 +244,15 @@ class ErrorManager{
 		return $arr;
 	}
 	
+	/**
+	 * 获取指定文件的指定范围行内容
+	 * 
+	 * @param string $filename  文件名
+	 * @param int    $startLine 起始行
+	 * @param int    $endLine   结束行
+	 * @param int    $redline   添加标记行
+	 * @return string
+	 */
 	static private function getFileLines($filename, $startLine = 1, $endLine = 50, $redline = 1) {
 		$fp = @fopen($filename, 'rb');
 		if (!$fp) return '';
@@ -210,6 +273,5 @@ class ErrorManager{
 		fclose($fp);
 		
 		return implode("\r\n", $content);
-		
 	}
 }

@@ -22,6 +22,16 @@ class AntiCSRF{
 	public static $argName		= 'formhash';
 	public static $varName		= 'formHash';
 	
+	/**
+	 * 初始化CSRF攻击防御模块
+	 * 一般来说不用手动初始化，应当在adminphp配置文件进行配置
+	 * 
+	 * @param string $cookieName  COOKIE键值
+	 * @param string $sessionName SESSION键值
+	 * @param string $argName     获取formhash的POST键值
+	 * @param string $varName     注册到View的变量名
+	 * @return void
+	 */
 	public static function init($cookieName = 'adminphp_formhash', $sessionName = 'adminphp_formhash', $argName = 'formhash', $varName = 'formHash'){
 		global $a,$c,$m;
 		
@@ -52,6 +62,12 @@ class AntiCSRF{
 		});
 	}
 	
+	/**
+	 * 进行验证
+	 * 在初始化的时候会自动对POST请求进行验证
+	 *
+	 * @return boolean
+	 */
 	public static function verify(){
 		$result = i(self::$argName) == self::get();
 		self::refush();
@@ -59,12 +75,22 @@ class AntiCSRF{
 		return $result;
 	}
 	
+	/**
+	 * 刷新FormHash(验证值)
+	 *
+	 * @return string
+	 */
 	public static function refush(){
 		$_SESSION[self::$sessionName] = 'xl_' . md5(uniqid() . rand());
 		@setcookie(self::$cookieName, $_SESSION[self::$sessionName], 0, '/');
 		return $_SESSION[self::$sessionName];
 	}
 	
+	/**
+	 * 获取FormHash(验证值)
+	 *
+	 * @return string
+	 */
 	public static function get(){
 		return isset($_SESSION[self::$sessionName]) ? $_SESSION[self::$sessionName] : '';
 	}

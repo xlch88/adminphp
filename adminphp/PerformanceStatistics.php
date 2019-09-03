@@ -23,6 +23,11 @@ class PerformanceStatistics{
 	
 	private $logIndex = 0;
 	
+	/**
+	 * 开始统计
+	 * 
+	 * @return void
+	 */
 	public static function begin(){
 		self::$begin = [
 			'time'		=> self::fn(),
@@ -30,6 +35,12 @@ class PerformanceStatistics{
 		];
 	}
 	
+	/**
+	 * 进行记录
+	 * 
+	 * @param string $name 记录名称
+	 * @return void
+	 */
 	public static function log($name = null){
 		if(!self::$enable) return;
 		
@@ -41,6 +52,11 @@ class PerformanceStatistics{
 		];
 	}
 	
+	/**
+	 * 输出记录
+	 * 
+	 * @return void
+	 */
 	public static function show(){
 		if(!self::$enable || !self::$show) return;
 		
@@ -68,6 +84,11 @@ class PerformanceStatistics{
 		echo "\r\n" . '-->';
 	}
 	
+	/**
+	 * 获取当前时间
+	 * 
+	 * @return loog
+	 */
 	private static function fn(){
 		list($a, $b) = explode(' ',microtime()); //获取并分割当前时间戳和微妙数，赋值给变量
 		return $a + $b;

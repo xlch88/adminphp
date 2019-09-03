@@ -26,6 +26,11 @@ class Language {
 	static public $loadFiles	= [];		//记录已加载文件
 	static public $lang			= [];		//语言数组
 	
+	/**
+	 * 初始化多语言支持
+	 * 
+	 * @return void
+	 */
 	public static function init($custom = 'zh-CN', $cookieName = 'adminphp_language', $subfix = '.php'){
 		self::$custom		= $custom ?: null;
 		self::$cookieName	= $cookieName;
@@ -35,6 +40,11 @@ class Language {
 		self::loadLanguage();
 	}
 	
+	/**
+	 * 初始化支持的语言列表
+	 * 
+	 * @return void
+	 */
 	private static function initLanguages(){
 		if(isset($_COOKIE[self::$cookieName])){
 			self::$languages[] = self::format($_COOKIE['adminphp_language']);
@@ -59,6 +69,26 @@ class Language {
 		}
 	}
 	
+	/**
+	 * 添加语言文件路径
+	 * 
+	 * @param string $path 路径
+	 * @return boolean
+	 */
+	public static function addPath($path){
+		if(realpath($path)){
+			self::$path[] = realpath($path) . DIRECTORY_SEPARATOR;
+			return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * 判断是否为正确的语言值
+	 * 如zh-CN zh-TW en-US
+	 * 
+	 * @return void
+	 */
 	private static function format($value){
 		if(!preg_match('/^[a-z]{2}(|-[A-Z]{2})$/', $value)){
 			return null;
@@ -67,12 +97,23 @@ class Language {
 		return $value;
 	}
 	
+	/**
+	 * 加载语言文件
+	 * 
+	 * @return void
+	 */
 	private static function loadLanguage(){
 		foreach(self::$path as $path){
 			self::loadLanguagePath($path);
 		}
 	}
 	
+	/**
+	 * 从目录里加载语言文件
+	 *
+	 * @param string $path 目录 
+	 * @return void
+	 */
 	private static function loadLanguagePath($path){
 		$files = scandir($path);
 		
@@ -97,6 +138,14 @@ class Language {
 		}
 	}
 	
+	/**
+	 * 获取加载的文件
+	 * 
+	 * @param string $path  目录 
+	 * @param string $files 文件列表 
+	 * @param string $lang  语言 
+	 * @return string
+	 */
 	private static function getLanguageFile($path, $files, $lang){
 		$loadFile = null;
 		
@@ -114,6 +163,12 @@ class Language {
 		return $loadFile;
 	}
 	
+	/**
+	 * 将语言文件内容合并到总列表
+	 * 
+	 * @param string $file 文件
+	 * @return boolean
+	 */
 	private static function loadLanguageFile($file){
 		if(in_array($file, self::$loadFiles)){
 			return false;
@@ -131,15 +186,15 @@ class Language {
 		return false;
 	}
 	
-	/* 多语言处理
-	 *
-	 * $value   语言原文或者数组路径
-	 * $args    参数
-	 * $default 默认值
-	 * 
+	/**
+	 * 多语言处理
 	 * 若未从语言字典中找到$text,则使用$default,若没有传入$default则直接处理$text.
-	 * 
-	 * 返回 已处理的内容
+	 * 函数别名: l()
+	 *
+	 * @param string $value   语言原文或者数组路径
+	 * @param array  $args    参数
+	 * @param mixed  $default 默认值
+	 * @return mixed
 	 */
 	public static function languagePrintf($value, $args = [], $default = null){
 		$args = !is_array($args) ? [ $args ] : $args;
@@ -154,12 +209,20 @@ class Language {
 			$v = $default !== NULL ? $default : $value;
 		}
 		
-		$return = @self::arrayPrintf($v, $args);
+		$return = self::arrayPrintf($v, $args);
 		
 		return $return;
 	}
 	
-	public static function arrayPrintf($var, &$args){
+	/**
+	 * 格式化返回内容 (使用sprintf)
+	 * 支持输入数组
+	 *
+	 * @param mixed $var  文本或数组
+	 * @param array $args 参数
+	 * @return mixed
+	 */
+	public static function arrayPrintf($var, array &$args){
 		if(is_array($var)){
 			foreach($var as $key => $value){
 				$var[$key] = self::arrayPrintf($value, $args);
@@ -179,6 +242,16 @@ class Language {
 		return $var;
 	}
 	
+	/**
+	 * 返回数组值，使用文本路径
+	 * 比如$path = 'a.b.c.d.e.f'
+	 * 则返回$arr['a']['b']['c']['d']['e']
+	 *
+	 * @param array  $arr       数组
+	 * @param string $var       路径
+	 * @param string $explode|. 路径分割字符
+	 * @return mixed
+	 */
 	public static function getPathValue($arr, $path, $explode = '.'){
 		$path = explode($explode, $path);
 		
@@ -190,9 +263,5 @@ class Language {
 		}
 		
 		return $value;
-	}
-	
-	public static function addPath($path){
-		self::$path[] = in_array(['/', '\\'], substr($path, -1)) ? $path : $path . DIRECTORY_SEPARATOR;
 	}
 }

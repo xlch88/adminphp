@@ -16,6 +16,11 @@ namespace AdminPHP;
 use AdminPHP\AutoLoad;
 
 class Controller{
+	/**
+	 * 初始化控制器
+	 * 
+	 * @return void
+	 */
 	static public function init(){
 		global $a, $c, $m;
 		
@@ -57,6 +62,12 @@ class Controller{
 		$controller->$m();
 	}
 	
+	/**
+	 * 发生错误的处理
+	 * 
+	 * @param int $type 错误代码
+	 * @return void
+	 */
 	static private function error($type = 404){
 		if(Hook::do('controller_error', [ 'type' => $type ])){ //用户自定义处理
 			return;
