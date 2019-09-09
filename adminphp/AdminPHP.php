@@ -10,10 +10,11 @@
  | Author  : Xlch88 (i@xlch.me)
  | LICENSE : WTFPL http://www.wtfpl.net/about
  * ----------------------------------------------- */
- 
+
 namespace AdminPHP;
 
 use AdminPHP\Hook;
+use AdminPHP\View;
 use AdminPHP\ErrorManager;
 use AdminPHP\PerformanceStatistics;
 use AdminPHP\Controller;
@@ -22,26 +23,25 @@ use AdminPHP\AntiCSRF;
 use AdminPHP\Exception\InitException;
 
 class AdminPHP{
-	/* ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ *\
-	 * ■ 警告！你不应该直接修改这里的内容！
-	 * ■ 你应该使用以下方法进行初始化
-	 * ■ \AdminPHP\AdminPHP::init( *你的配置项* );
-	\* ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ */
-	static public $config = [
-		'path'		=> [
-			'template'	=> '',
-			'app'		=> root . 'app'
-		],
+    /* ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ *\
+     * ■ 警告！你不应该直接修改这里的内容！
+     * ■ 你应该使用以下方法进行初始化
+     * ■ \AdminPHP\AdminPHP::init( *你的配置项* );
+    \* ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ */
+    static public $config = [
+        'path'          => [
+            'template'  => '',
+            'app'       => root . 'app'
+        ],
+        
+        'router'    => [
+            'index'     => 'index/index/index',
 			
-		'router'	=> [
-			'index'		=> 'index/index/index',
-			
-			'default'	=> [
-				'a'	=> 'index',
-				'c'	=> 'index',
+            'default'   => [
+                'a'	=> 'index',
+                'c'	=> 'index',
 				'm'	=> 'index'
 			],
-			
 			
 			'router'	=> 1,
 			'rewrite'	=> 0,
@@ -67,7 +67,18 @@ class AdminPHP{
 			'cookieName'	=> 'adminphp_language'
 		],
 		
-		'adminInfo'	=> []
+		'adminInfo'	=> [],
+		
+		'cache'		=> [
+			'enable'		=> false,
+			'engine'		=> 'file',
+			'path'			=> root . 'runtime' . DIRECTORY_SEPARATOR . 'cache',
+			'file_subfix'	=> '.cache.php'
+		],
+		
+		'view'		=> [
+			'engine'	=> 'keyao'
+		]
 	];
 	
 	/**
@@ -101,12 +112,20 @@ class AdminPHP{
 		Hook::do('adminphp_init_functions');
 		PerformanceStatistics::log('AdmionPHP:init_functions');
 
-		// Language ------------------------------------------------------------------------------------------
+		// Language ----------------------------------------------------------------------------------------
 		Language::init(self::$config['language']['use'], self::$config['language']['cookieName']);
 		PerformanceStatistics::log('AdmionPHP:init_language');
 		
 		// ErrorManager ------------------------------------------------------------------------------------
 		self::registerErrorManager();
+		
+		// Cache  ------------------------------------------------------------------------------------------
+		if(self::$config['cache']['enable']){
+			Cache::init(self::$config['cache']);
+		}
+		
+		// View --------------------------------------------------------------------------------------------
+		View::init(self::$config['view']);
 		
 		// Load App Functions File -------------------------------------------------------------------------
 		if(is_file(appPath . 'functions.php'))
@@ -114,7 +133,7 @@ class AdminPHP{
 
 		Hook::do('app_init_functions');
 		PerformanceStatistics::log('AdmionPHP:init_app_function');
-
+		
 		// Router ------------------------------------------------------------------------------------------
 		Router::init(self::$config['router']);
 		PerformanceStatistics::log('AdmionPHP:init_router');

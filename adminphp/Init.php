@@ -11,6 +11,8 @@
  | LICENSE : WTFPL http://www.wtfpl.net/about
  * ----------------------------------------------- */
 
+define('adminphp', dirname(__FILE__) . DIRECTORY_SEPARATOR);
+
 define('adminphp_version',		2002);
 define('adminphp_version_name', '2.0');
 

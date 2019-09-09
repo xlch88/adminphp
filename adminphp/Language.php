@@ -205,7 +205,7 @@ class Language {
 			$v = self::$lang[$value];
 		}
 		
-		if($v === null){
+		if(!$v){
 			$v = $default !== NULL ? $default : $value;
 		}
 		

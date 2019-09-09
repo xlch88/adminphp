@@ -10,13 +10,12 @@
  | Author  : Xlch88 (i@xlch.me)
  | LICENSE : WTFPL http://www.wtfpl.net/about
  * ----------------------------------------------- */
-
+$GLOBALS['q'] = 0;
 // 定义常量,这些常量缺一不可
 define('root',		dirname(__FILE__) . DIRECTORY_SEPARATOR);
-define('adminphp',	root . 'adminphp' . DIRECTORY_SEPARATOR);
 
 // 引入框架文件
-include(adminphp . 'Init.php');
+include(root . 'adminphp' . DIRECTORY_SEPARATOR . 'Init.php');
 
 // 启动 (<ゝω·)☆
 \AdminPHP\AdminPHP::init(array(
@@ -61,7 +60,7 @@ include(adminphp . 'Init.php');
 	
 	/* 性能统计 */
 	'performanceStatistics'	=> [
-		'enable'	=> true,	//启用 
+		'enable'	=> false,	//启用 
 		'show'		=> true		//显示在页面底部的注释
 	],
 	
@@ -78,5 +77,12 @@ include(adminphp . 'Init.php');
 	'language'	=> [
 		'use'			=> 'zh-CN',				//程序使用的默认语言
 		'cookieName'	=> 'adminphp_language'	//用于记录用户自定义语言的COOKIE键名
+	],
+	
+	/* 缓存功能 */
+	'cache'		=> [
+		'enable'	=> true,											//是否启用
+		'engine'	=> 'file',											//存储引擎(file=文件)
+		'path'		=> root . 'runtime' . DIRECTORY_SEPARATOR . 'cache'	//文件保存路径
 	]
 ));

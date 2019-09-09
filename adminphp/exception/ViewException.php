@@ -25,6 +25,10 @@ class ViewException extends Exception{
 			case 0:
 				$this->message = l('模板文件未找到！');
 			break;
+			
+			case 1:
+				$this->message = l('写入模板引擎缓存文件失败！');
+			break;
 		}
 		
 		$this->template_filepath = $filepath;

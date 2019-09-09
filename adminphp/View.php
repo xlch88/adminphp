@@ -15,12 +15,29 @@ namespace AdminPHP;
 
 use AdminPHP\Hook;
 use AdminPHP\Exception\ViewException;
+use AdminPHP\Engine\View\KeYao as ViewEngine_KeYao;
 
 class View{
 	private static $globalVar = [];
 	private static $var = [];
+	private static $engine = '';
+	private static $engineClass = null;
 	
 	public static $subfix = '.php';
+	
+	public static function init($config){
+		switch($config['engine']){
+			case 'keyao':
+				self::$engineClass = new ViewEngine_KeYao($config);
+			break;
+			
+			default:
+				throw new \InvalidArgumentException(l('模板引擎名称无效！'));
+			break;
+		}
+		
+		self::$engine = $config['engine'];
+	}
 	
 	/**
 	 * 获取已映射的全局变量
@@ -88,49 +105,52 @@ class View{
 	 * @param string  $_templateFile 模板文件
 	 * @param array   $args          参数
 	 * @param boolean $_isRoot       是否从根目录
+	 * @param boolean $engine        是否使用模板渲染引擎
 	 * @return void
 	 */
-	public static function view($_templateFile, $args = [], $_isRoot = 0){
+	public static function view($file, $args = [], $isRoot = 0, $engine = true){
 		global $a, $c, $m;
 		
-		foreach(self::$globalVar as $var____){
-			$$var____ = isset($GLOBALS[$var____]) ? $GLOBALS[$var____] : null;
+		if($engine){
+			$file = self::$engineClass->getFile($file, $isRoot);
+		}else{
+			$_templateFilePath	= $_isRoot ? '' : templatePath;
+			$file				= $file . self::$subfix;
+			
+			Hook::do('template_echo', ['templateFilePath' => &$_templateFilePath, 'templateFile' => &$file, 'isRoot' => $isRoot]);
+			
+			$_file = $_templateFilePath . $file;
+		
+			if(!is_file($_file)){
+				throw new ViewException(0, $_templateFilePath, $file, $_file);
+			}
+			
+			$data = file_get_contents($_file);
 		}
 		
-		foreach(self::$var as $var___ => $var____){
-			if(is_callable($var____)){
-				$$var___ = $var____();
+		foreach(self::$var as $var_ => $value){
+			if(is_callable($value)){
+				$args[$var_] = $value();
 			}else{
-				$$var___ = $var____;
+				if(isset($args[$var_]) && is_array($args[$var_]) && is_array($value)){
+					$args[$var_] = array_merge($args[$var_], $value);
+				}else{
+					$args[$var_] = &$value;
+				}
 			}
 		}
 		
-		if(!isset($GLOBALS['view'])) $GLOBALS['view'] = [];
-		foreach($args as $key____ => $value____){
-			$GLOBALS['view'][$key____] = $value____;
-		}
+		unset($args['__file']);
 		
-		foreach($GLOBALS['view'] as $key____ => $value____){
-			if(isset($$key____) && is_array($value____) && is_array($$key____)){
-				$$key____ = array_merge($$key____, $value____);
-			}else{
-				$$key____ = $value____;
+		(function($__args, $__file){
+			foreach(\AdminPHP\View::$globalVar as $__globalVar){
+				global $$__globalVar;
 			}
-		}
-		
-		$_templateFilePath	= $_isRoot ? '' : templatePath;
-		$_templateFile		= $_templateFile . self::$subfix;
-		Hook::do('template_echo', ['templateFilePath' => &$_templateFilePath, 'templateFile' => &$_templateFile, 'isRoot' => $_isRoot]);
-		
-		
-		$_file = $_templateFilePath . $_templateFile;
-		
-		if(!is_file($_file)){
-			throw new ViewException(0, $_templateFilePath, $_templateFile, $_file);
-		}
-		
-		unset($var____, $var___, $key____, $value____, $_templateFile, $_templateFilePath);
-		
-		include($_file);
+			
+			extract($__args);
+			unset($__args, $__globalVar);
+			
+			include($__file);
+		})($args, $file);
 	}
 }

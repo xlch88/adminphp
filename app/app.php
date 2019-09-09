@@ -4,6 +4,7 @@ namespace App;
 use AdminPHP\Hook;
 use AdminPHP\Router;
 use AdminPHP\View;
+use AdminPHP\Engine\View\KeYao;
 use DB;
 
 Hook::add('app_init_router', function(){
@@ -23,5 +24,15 @@ Hook::add('app_init', function(){
 	
 	View::setVar('dbStatus', function () use ($db){
 		return !!$db;
+	});
+	
+	KeYao::setMethod('qwq', function($match){
+		if(!isset($match[4])) return;
+		
+		return '<?php qwq(' . $match[4] . '); ?>';
+	});
+	
+	KeYao::setIfMethod('iftest', function($if){
+		return false;
 	});
 });

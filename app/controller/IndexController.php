@@ -2,12 +2,21 @@
 namespace App\Controller;
 
 use AdminPHP\AdminPHP;
+use AdminPHP\Cache;
 
 class IndexController{
 	public function index(){
 		view('index/index', [
 			'text'	=> 'AdminPHP<br/>V2 Beta'
 		]);
+	}
+	
+	public function keyao(){
+		view('index/yaoke');
+	}
+	
+	public function keyao2(){
+		view('index/yaoke2');
 	}
 	
 	public function router(){
@@ -37,6 +46,14 @@ class IndexController{
 		];
 		
 		throw new \Exception('啊，异常了！', 23333);
+	}
+	
+	public function setCache(){
+		var_dump(Cache::set('qwq', '123456', time()+233));
+	}
+	
+	public function getCache(){
+		var_dump(Cache::get('qwq'));
 	}
 	
 	public function sysinfo(){
