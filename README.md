@@ -11,12 +11,18 @@
 正在逐步填坑中，当前版本仅供研究，请勿使用。
 
 # 已(大致)完成的功能
-- 控制器加载
-- 钩子
-- class自动加载
-- 路由
-- 错误管理
-- 多语言支持
+- View (视图/模板渲染)
+- Hook (钩子)
+- ErrorManager (错误管理)
+- Router (路由)
+- Language (多语言支持)
+- Controller (控制器)
 
-# 未完成(或者计划中但是不确定要不要做)的功能
-- 模板
+- Autoload (class自动加载)
+- AntiCSRF (formhash,防止CSRF攻击)
+- PerformanceStatistics (性能统计)
+- Cache (缓存)
+
+- Safe (安全处理函数)
+- Config (配置文件类)
+- DB (数据库类)
