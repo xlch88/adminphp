@@ -15,7 +15,7 @@ use AdminPHP\PerformanceStatistics;
 use AdminPHP\Exception\DBException;
 
 class DB {
-    public $link = null;
+	public $link = null;
 	public $log = [];
 	public static $prefixReplace = '6F04CC78DA08B37A';
 	
@@ -57,7 +57,7 @@ class DB {
 	 * @param boolean $isThrow  连接失败是否抛出异常
 	 * @return array
 	 */
-    public function __construct($config, $isThrow = true){
+	public function __construct($config, $isThrow = true){
 		$this->config = array_merge($this->config, $config);
 		$this->config['options'][PDO::ATTR_ERRMODE] = PDO::ERRMODE_EXCEPTION;
 		
@@ -90,12 +90,12 @@ class DB {
 			return false;
 		}
 		
-        $this->query('set sql_mode = ""');
-        $this->query('set character set "' . $this->config['charset'] . '"');
-        $this->query('set names "' . $this->config['charset'] . '"');
+		$this->query('set sql_mode = ""');
+		$this->query('set character set "' . $this->config['charset'] . '"');
+		$this->query('set names "' . $this->config['charset'] . '"');
 		
-        return true;
-    }
+		return true;
+	}
 	
 	/**
 	 * 获取查询结果(全部)
@@ -103,11 +103,11 @@ class DB {
 	 * @param string $sql SQL语句
 	 * @return array
 	 */
-    public function get_rows($sql, $args = [], $fetch_style = PDO::FETCH_ASSOC){
+	public function get_rows($sql, $args = [], $fetch_style = PDO::FETCH_ASSOC){
 		$stmt = $this->query($sql, $args);
 		
-        return $stmt->fetchAll($fetch_style);
-    }
+		return $stmt->fetchAll($fetch_style);
+	}
 	
 	/**
 	 * 获取查询结果(第一行)
@@ -115,11 +115,11 @@ class DB {
 	 * @param string $sql SQL语句
 	 * @return array
 	 */
-    public function get_row($sql, $args = [], $fetch_style = PDO::FETCH_ASSOC){
-        $result = $this->get_rows($sql, $args, $fetch_style);
+	public function get_row($sql, $args = [], $fetch_style = PDO::FETCH_ASSOC){
+		$result = $this->get_rows($sql, $args, $fetch_style);
 		
-        return $result ? $result[0] : false;
-    }
+		return $result ? $result[0] : false;
+	}
 	
 	/**
 	 * 修改符合条件的行
@@ -129,11 +129,11 @@ class DB {
 	 * @param mixed  $where 条件
 	 * @return result
 	 */
-    public function update(string $table, array $data, $where){
-        $sql = 'UPDATE `[T]' . $table . '` SET ' . $this->arr2sql($data, 'insert') . ' WHERE ' . (is_array($where) ? $this->arr2sql($where) : $where);
+	public function update(string $table, array $data, $where){
+		$sql = 'UPDATE `[T]' . $table . '` SET ' . $this->arr2sql($data, 'insert') . ' WHERE ' . (is_array($where) ? $this->arr2sql($where) : $where);
 		
-        return $this->exec($sql);
-    }
+		return $this->exec($sql);
+	}
 	
 	/**
 	 * 删除符合条件的行
@@ -145,7 +145,7 @@ class DB {
 	public function delete(string $table, $where){
 		$sql = 'DELETE FROM `[T]' . $table . '` WHERE ' . (is_array($where) ? $this->arr2sql($where, 'where') : $where);
 		
-        return $this->exec($sql);
+		return $this->exec($sql);
 	}
 	
 	/**
@@ -154,11 +154,11 @@ class DB {
 	 * @param string $sql SQL语句
 	 * @return int
 	 */
-    public function insert($sql, $args = []){
+	public function insert($sql, $args = []){
 		$stmt = $this->query($sql, $args);
 		
-        return $this->link->lastInsertId();
-    }
+		return $this->link->lastInsertId();
+	}
 	
 	/**
 	 * 以数组形式插入行并返回插入的主键ID
@@ -167,11 +167,11 @@ class DB {
 	 * @param array $array 数组
 	 * @return int
 	 */
-    public function insert_array(string $table, array $array){
+	public function insert_array(string $table, array $array){
 		$sql = 'INSERT INTO `[T]' . $table . '` SET ' . $this->arr2sql($array, 'insert');
 		
-        return $this->insert($sql);
-    }
+		return $this->insert($sql);
+	}
 	
 	/**
 	 * 获取COUNT查询数量
@@ -181,7 +181,7 @@ class DB {
 	 * @param boolean $int  是否转换为整数
 	 * @return int
 	 */
-    public function count($sql, $args = [], $int = true){
+	public function count($sql, $args = [], $int = true){
 		if(!($result = $this->get_row($sql, $args, PDO::FETCH_BOTH))){
 			return 0;
 		}
@@ -190,8 +190,8 @@ class DB {
 			return 0;
 		}
 		
-        return $int ? (int)$result[0][0] : $result[0][0];
-    }
+		return $int ? (int)$result[0][0] : $result[0][0];
+	}
 	
 	public function handleSQL($sql){
 		$sql = str_replace(['[T]', self::$prefixReplace], [$this->config['prefix'], '[T]'], $sql);
@@ -205,12 +205,12 @@ class DB {
 	/**
 	 * 查询SQL语句
 	 * 
-	 * @param string  $sql     SQL语句
-	 * @param array   $args    参数
+	 * @param string  $sql	 SQL语句
+	 * @param array   $args	参数
 	 * @param boolean $isThrow 出现错误是否抛出异常
 	 * @return result
 	 */
-    public function query($sql, $args = [], $isThrow = true){
+	public function query($sql, $args = [], $isThrow = true){
 		$sql = $this->handleSQL($sql);
 		$stmt = $this->link->prepare($sql);
 		
@@ -229,8 +229,8 @@ class DB {
 			return false;
 		}
 		
-        return $stmt;
-    }
+		return $stmt;
+	}
 	
 	/**
 	 * 执行SQL语句并返回影响行数
@@ -252,9 +252,9 @@ class DB {
 	 * @param resource $stmt 查询返回结果
 	 * @return array
 	 */
-    public function fetch($stmt, $style = PDO::FETCH_ASSOC){
+	public function fetch($stmt, $style = PDO::FETCH_ASSOC){
 		return $stmt->fetch($style);
-    }
+	}
 	
 	/**
 	 * 数组转换为sql语句
@@ -263,9 +263,9 @@ class DB {
 	 * @param string $mode 模式(where或insert)
 	 * @return string
 	 */
-    public function arr2sql($arr = [], $mode = 'where'){
-        $return = [];
-        foreach ($arr as $key => $value) {
+	public function arr2sql($arr = [], $mode = 'where'){
+		$return = [];
+		foreach ($arr as $key => $value) {
 			if($mode == 'insert'){
 				if($key == '#'){
 					if(!is_string($value)){
@@ -312,10 +312,10 @@ class DB {
 				}
 			}
 			
-            $return[] = $sql;
-        }
-        return implode(($mode == 'insert' ? ', ' : ' AND '), $return);
-    }
+			$return[] = $sql;
+		}
+		return implode(($mode == 'insert' ? ', ' : ' AND '), $return);
+	}
 	
 	/**
 	 * 转义特殊字符
@@ -333,7 +333,7 @@ class DB {
 	 * @param PDOStatement $stmt 查询返回结果
 	 * @return string
 	 */
-    public function error($stmt){
-        return '[' . $stmt->errorCode() . '] ' . $stmt->errorInfo();
-    }
+	public function error($stmt){
+		return '[' . $stmt->errorCode() . '] ' . $stmt->errorInfo();
+	}
 }
