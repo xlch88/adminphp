@@ -33,11 +33,15 @@ class Cache {
 		self::$engine = $config['engine'];
 	}
 	
-	static public function get($key, $default = false){
-		return self::$engineClass->get($key, $default);
+	static public function e(){
+		return self::$engineClass;
 	}
 	
-	static public function set($key, $value, $expiry = false){
-		return self::$engineClass->set($key, $value, $expiry);
+	static public function eName(){
+		return self::$engine;
+	}
+	
+	static public function __callStatic($name, $arguments) {
+		return call_user_func_array([self::$engineClass, $name], $arguments);
 	}
 }

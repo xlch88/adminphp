@@ -16,40 +16,41 @@ namespace AdminPHP\Exception;
 use AdminPHP\Exception\Exception;
 
 class DBException extends Exception{
-    public function __construct($code, $db, $sql = '', $arr2sql = [])
+    public function __construct($code, $db, $arg2 = '')
     {
 		$this->code = $code;
 		
 		switch($this->code){
 			case 0: //连接失败
 				$this->message			= l('连接数据库失败！');
-				$this->connect_errno	= mysqli_connect_errno();
-				$this->connect_error	= mysqli_connect_error();
+				$this->PDOException		= '[' . $arg2['PDOException']->getCode() . '] ' . $arg2['PDOException']->getMessage();
+				$this->dsn				= $arg2['dsn'];
 			break;
 			
 			case 1: //查询错误
 				$this->message		= l('执行SQL查询语句时出现错误。');
-				$this->sql			= $sql;
-				$this->query_errno	= mysqli_errno($db->link);
-				$this->query_error	= mysqli_error($db->link);
+				$this->sql			= $arg2['sql'];
+				$this->args			= $arg2['args'];
+				$this->PDOErrorCode	= $arg2['errorCode'];
+				$this->PDOErrorInfo	= $arg2['errorInfo'];
 				$this->log_sql		= $db->log;
 			break;
 			
 			case 2: //arr2sql错误
 				$this->message		= l('arr2sql转换错误: 值应该是文本型/整数型/布尔型，却传入了数组或其他类型。');
-				$this->arr			= $arr2sql['arr'];
-				$this->key			= $arr2sql['key'];
-				$this->value		= $arr2sql['value'];
+				$this->arr			= $arg2['arr'];
+				$this->key			= $arg2['key'];
+				$this->value		= $arg2['value'];
 			break;
 			
 			case 3: //arr2sql错误
 				$this->message		= l('arr2sql转换错误: 值应该是数组型，却传入了文本型/整数型/布尔型或其他类型。');
-				$this->arr			= $arr2sql['arr'];
-				$this->key			= $arr2sql['key'];
-				$this->value		= $arr2sql['value'];
+				$this->arr			= $arg2['arr'];
+				$this->key			= $arg2['key'];
+				$this->value		= $arg2['value'];
 			break;
 		}
 		
-		$this->dbConfig = $db->dbConfig;
+		$this->dbConfig = $db->config;
     }
 }

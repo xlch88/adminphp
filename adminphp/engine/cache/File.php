@@ -33,7 +33,7 @@ class File {
 		$this->subfix = $config['file_subfix'];
 	}
 	
-	public function get($key, $default = false){
+	public function get($key, $default = null){
 		$file = $this->path . $key . $this->subfix;
 		
 		if(!is_file($file)){
@@ -60,5 +60,10 @@ class File {
 		
 		$file = $this->path . $key . $this->subfix;
 		return !(file_put_contents($file, $data) === FALSE);
+	}
+	
+	public function delete($key){
+		$file = $this->path . $key . $this->subfix;
+		return unlink($file);
 	}
 }

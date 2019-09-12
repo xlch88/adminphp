@@ -3,12 +3,86 @@ namespace App\Controller;
 
 use AdminPHP\AdminPHP;
 use AdminPHP\Cache;
+use DB;
 
 class IndexController{
 	public function index(){
 		view('index/index', [
 			'text'	=> 'AdminPHP<br/>V2 Beta'
 		]);
+	}
+	
+	public function dbtest(){
+		var_dump([\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION]);
+		
+		echo '<pre>';
+		echo '连接数据库...' . "\r\n";
+		$db = new DB([
+			/* --   数据库类型   -- */
+			'type'		=> 'mysql',			//类型[mysql,sqllite]
+			
+			/* --     MySQL      -- */
+			'ip'		=> '127.0.0.1',		//IP
+			'port'		=> 3306,			//端口
+			'username'	=> 'root',			//用户名
+			'password'	=> 'root',			//密码
+			'db'		=> 'test',			//数据库名
+			
+			/* --      表前缀    -- */
+			'prefix'	=> 'test_',				//表前缀
+		], true);
+		
+		print_r($db);
+		
+		echo '获取多行...' . "\r\n";
+		print_r($db->get_rows('select * from [T]user where username like :username', [
+			':username'	=> 'xlch%'
+		]));
+		
+		echo '获取单行...' . "\r\n";
+		print_r($db->get_row('select * from [T]user where username = :username', [
+			':username'	=> 'xlch88'
+		]));
+		
+		echo '修改值...' . "\r\n";
+		var_dump($db->update('user', [
+			'#token'	=> 'rand()'
+		], [
+			'username'	=> 'xlch88'
+		]));
+		
+		echo '插入一行...' . "\r\n";
+		var_dump($db->insert('insert into [T]user set username = :username, password = "123456", token = "qwq"', [
+			':username'	=> 'xlch66'
+		]));
+		
+		echo '插入一行... (数组形式)' . "\r\n";
+		var_dump($db->insert_array('user', [
+			'username'	=> 'xlch66',
+			'password'	=> '123456',
+			'#token'	=> 'rand()'
+		]));
+		
+		print_r($db->log);
+		
+		echo '获取多行...' . "\r\n";
+		print_r($db->get_rows('select * from [T]user'));
+		
+ 		echo '删除...' . "\r\n";
+		var_dump($db->delete('user', [
+			'username'	=> 'xlch66'
+		]));
+		
+		echo '获取数量...' . "\r\n";
+		var_dump($db->count('select count(*) from [T]user where username like "xlch%"'));
+		
+		echo '手动fetch...' . "\r\n";
+		$stmt = $db->query('select * from [T]user');
+		while($row = $db->fetch($stmt, \PDO::FETCH_BOTH)){
+			print_r($row);
+		}
+		
+		echo '</pre>';
 	}
 	
 	public function keyao(){

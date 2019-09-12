@@ -19,46 +19,80 @@ class DB {
 	public $log = [];
 	public static $prefixReplace = '6F04CC78DA08B37A';
 	
-	var $dbConfig = [
-		/* -- 数据库连接信息 -- */
+	public $config = [
+		/* --   数据库类型   -- */
+		'type'		=> 'mysql',			//类型[mysql,sqllite]
+		
+		/* --     MySQL      -- */
 		'ip'		=> '127.0.0.1',		//IP
 		'port'		=> 3306,			//端口
 		'username'	=> 'root',			//用户名
 		'password'	=> 'root',			//密码
 		'db'		=> 'test',			//数据库名
+		'unixSocket'=> '',				//使用unix socket连接，若此项不为空，则忽略上面字段直接使用此字段进行连接
+		
+		/* --     SQLite     -- */
+		'file'		=> '',				//SQLite文件
+		
+		/* --     PDO DSN    -- */
+		'dsn'		=> '',				//若此项不为空，则忽略上面字段直接使用此字段进行连接
 		
 		/* --      选项      -- */
 		'isLogSQL'	=> true,			//是否记录已查询SQL
 		'charset'	=> 'utf8',			//编码
+		'options'	=> [				//driver_options
+			\PDO::ATTR_ERRMODE	=> \PDO::ERRMODE_EXCEPTION
+		],
 		
 		/* --      表前缀    -- */
 		'prefix'	=> '',				//表前缀
 	];
 	
+	public $isThrow = true;	//出现错误时是否抛出异常
+	
 	/**
 	 * 初始化
 	 * 
-	 * @param array $dbConfig 数据库连接配置
-	 * @param boolean $isThrow 连接失败是否抛出异常
+	 * @param array   $dbConfig 数据库连接配置
+	 * @param boolean $isThrow  连接失败是否抛出异常
 	 * @return array
 	 */
-    public function __construct($dbConfig, $isThrow = true){
-		$this->dbConfig = array_merge($this->dbConfig, $dbConfig);
+    public function __construct($config, $isThrow = true){
+		$this->config = array_merge($this->config, $config);
+		$this->config['options'][PDO::ATTR_ERRMODE] = PDO::ERRMODE_EXCEPTION;
 		
-        $this->link = @mysqli_connect($this->dbConfig['ip'], $this->dbConfig['user'], $this->dbConfig['pass'], $this->dbConfig['db'], $this->dbConfig['port']);
-        if (!$this->link) {
-			if(!$isThrow){
-				return false;
+		$this->isThrow = $isThrow;
+		
+		try{
+			if($this->config['dsn']){
+				$this->link = new \PDO($this->config['dsn'], $this->config['username'], $this->config['password'], $this->config['options']);
+			}else{
+				switch($this->config['type']){
+					case 'mysql':
+						$dsn = 'mysql:dbname=' . $this->config['db'] . ';host=' . $this->config['ip'] . ';charset=' . $this->config['charset'] . ';port=' . $this->config['port'];
+						$this->link = new PDO($dsn, $this->config['username'], $this->config['password'], $this->config['options']);
+					break;
+					
+					case 'sqlite':
+						$dsn = 'sqlite:' . $this->config['file'];
+						$this->link = new PDO($dsn, '', '', $this->config['options']);
+					break;
+				}
+			}
+		}catch(PDOException $e){
+			if($this->isThrow){
+				throw new DBException(0, $this, [
+					'PDOException'	=> $e,
+					'dsn'			=> isset($dsn) ? $dsn : $this->config['dsn']
+				]);
 			}
 			
-			throw new DBException(0, $this);
-        }
-		
-		$this->isLogSQL = $this->dbConfig['isLogSQL'];
+			return false;
+		}
 		
         $this->query('set sql_mode = ""');
-        $this->query('set character set "' . $this->dbConfig['charset'] . '"');
-        $this->query('set names "' . $this->dbConfig['charset'] . '"');
+        $this->query('set character set "' . $this->config['charset'] . '"');
+        $this->query('set names "' . $this->config['charset'] . '"');
 		
         return true;
     }
@@ -69,27 +103,22 @@ class DB {
 	 * @param string $sql SQL语句
 	 * @return array
 	 */
-    public function get_rows($sql){
-        $rows = [];
-        $result = $this->query($sql);
-        if ($result) {
-            while ($row = $this->fetch($result)) {
-                $rows[] = $row;
-            }
-        }
-        return $rows;
+    public function get_rows($sql, $args = [], $fetch_style = PDO::FETCH_ASSOC){
+		$stmt = $this->query($sql, $args);
+		
+        return $stmt->fetchAll($fetch_style);
     }
 	
 	/**
-	 * 获取查询结果(一行)
+	 * 获取查询结果(第一行)
 	 * 
 	 * @param string $sql SQL语句
 	 * @return array
 	 */
-    public function get_row($sql){
-        $result = $this->query($sql);
+    public function get_row($sql, $args = [], $fetch_style = PDO::FETCH_ASSOC){
+        $result = $this->get_rows($sql, $args, $fetch_style);
 		
-        return $result ? $this->fetch($result) : false;
+        return $result ? $result[0] : false;
     }
 	
 	/**
@@ -103,7 +132,7 @@ class DB {
     public function update(string $table, array $data, $where){
         $sql = 'UPDATE `[T]' . $table . '` SET ' . $this->arr2sql($data, 'insert') . ' WHERE ' . (is_array($where) ? $this->arr2sql($where) : $where);
 		
-        return $this->query($sql);
+        return $this->exec($sql);
     }
 	
 	/**
@@ -114,11 +143,9 @@ class DB {
 	 * @return result
 	 */
 	public function delete(string $table, $where){
-		$where_ = [];
-		
 		$sql = 'DELETE FROM `[T]' . $table . '` WHERE ' . (is_array($where) ? $this->arr2sql($where, 'where') : $where);
 		
-        return $this->query($sql);
+        return $this->exec($sql);
 	}
 	
 	/**
@@ -127,11 +154,10 @@ class DB {
 	 * @param string $sql SQL语句
 	 * @return int
 	 */
-    public function insert($q){
-        if ($this->query($q)) {
-            return mysqli_insert_id($this->link);
-        }
-        return false;
+    public function insert($sql, $args = []){
+		$stmt = $this->query($sql, $args);
+		
+        return $this->link->lastInsertId();
     }
 	
 	/**
@@ -141,71 +167,93 @@ class DB {
 	 * @param array $array 数组
 	 * @return int
 	 */
-    public function insert_array($table, $array){
-		$table = '[T]' . $table;
+    public function insert_array(string $table, array $array){
+		$sql = 'INSERT INTO `[T]' . $table . '` SET ' . $this->arr2sql($array, 'insert');
 		
-        $q = "INSERT INTO `{$table}`";
-        $q .= " (`" . implode("`,`", safe2(array_keys($array), 'sql')) . "`) ";
-        $q .= " VALUES ('" . implode("','", safe2(array_values($array), 'sql')) . "') ";
-        if ($this->query($q)) {
-            return mysqli_insert_id($this->link);
-        }
-        return false;
+        return $this->insert($sql);
     }
 	
 	/**
 	 * 获取COUNT查询数量
 	 * 
-	 * @param string $sql SQL语句
+	 * @param string  $sql  SQL语句
+	 * @param array   $args 参数
+	 * @param boolean $int  是否转换为整数
 	 * @return int
 	 */
-    public function count($sql){
-        $result = $this->query($sql);
-        $count = mysqli_fetch_array($result);
-        return $count[0];
+    public function count($sql, $args = [], $int = true){
+		if(!($result = $this->get_row($sql, $args, PDO::FETCH_BOTH))){
+			return 0;
+		}
+		
+		if(!isset($result[0][0])){
+			return 0;
+		}
+		
+        return $int ? (int)$result[0][0] : $result[0][0];
     }
+	
+	public function handleSQL($sql){
+		$sql = str_replace(['[T]', self::$prefixReplace], [$this->config['prefix'], '[T]'], $sql);
+		
+		PerformanceStatistics::$SQLCount++;
+		if($this->config['isLogSQL']) $this->log[] = $sql;
+		
+		return $sql;
+	}
 	
 	/**
 	 * 查询SQL语句
+	 * 
+	 * @param string  $sql     SQL语句
+	 * @param array   $args    参数
+	 * @param boolean $isThrow 出现错误是否抛出异常
+	 * @return result
+	 */
+    public function query($sql, $args = [], $isThrow = true){
+		$sql = $this->handleSQL($sql);
+		$stmt = $this->link->prepare($sql);
+		
+		try{
+			$stmt->execute($args);
+		}catch(PDOException $ex){
+			if($this->isThrow){
+				throw new DBException(1, $this, [
+					'sql'		=> $sql,
+					'args'		=> $args,
+					'errorCode'	=> $stmt->errorCode(),
+					'errorInfo'	=> $stmt->errorInfo()
+				]);
+			}
+			
+			return false;
+		}
+		
+        return $stmt;
+    }
+	
+	/**
+	 * 执行SQL语句并返回影响行数
+	 * PDO::exec()
 	 * 
 	 * @param string $sql SQL语句
 	 * @param boolean $isThrow 出现错误是否抛出异常
 	 * @return result
 	 */
-    public function query($sql, $isThrow = true){
-		$sql = str_replace(['[T]', self::$prefixReplace], [$this->dbConfig['prefix'], '[T]'], $sql);
+	public function exec($sql){
+		$sql = $this->handleSQL($sql);
 		
-		PerformanceStatistics::$SQLCount++;
-		if($this->dbConfig['isLogSQL']) $this->log[] = $sql;
-		
-		$data = mysqli_query($this->link, $sql);
-		
-		if($data === FALSE){
-			if(!$isThrow) return false;
-			
-			throw new DBException(1, $this, $sql);
-		}
-		
-        return $data;
-    }
+		return $this->link->exec($sql);
+	}
 	
 	/**
 	 * 获取一条数据
 	 * 
-	 * @param resource $result 查询返回结果
+	 * @param resource $stmt 查询返回结果
 	 * @return array
 	 */
-    public function fetch($q){
-        return mysqli_fetch_assoc($q);
-    }
-	
-	/**
-	 * 返回上一句SQL影响的行数
-	 * 
-	 * @return int
-	 */
-    public function affected(){
-        return mysqli_affected_rows($this->link);
+    public function fetch($stmt, $style = PDO::FETCH_ASSOC){
+		return $stmt->fetch($style);
     }
 	
 	/**
@@ -221,44 +269,44 @@ class DB {
 			if($mode == 'insert'){
 				if($key == '#'){
 					if(!is_string($value)){
-						throw new DBException(2, $this, '', ['arr' => $arr, 'key' => $key, 'value' => $value]);
+						throw new DBException(2, $this, ['arr' => $arr, 'key' => $key, 'value' => $value]);
 					}
 					$sql = $value;
 				}elseif(substr($key, 0, 1) == '#'){
 					if(!is_string($value) && !is_numeric($value) && !is_bool($value)){
-						throw new DBException(2, $this, '', ['arr' => $arr, 'key' => $key, 'value' => $value]);
+						throw new DBException(2, $this, ['arr' => $arr, 'key' => $key, 'value' => $value]);
 					}
 					$sql = '`' . addslashes(substr($key, 1)) . '` = ' . $value;
 				}elseif(substr($key, 0, 1) == '@'){
 					if(!is_array($value)){
-						throw new DBException(3, $this, '', ['arr' => $arr, 'key' => $key, 'value' => $value]);
+						throw new DBException(3, $this, ['arr' => $arr, 'key' => $key, 'value' => $value]);
 					}
 					$sql = '`' . addslashes(substr($key, 1)) . '` = "' . addslashes(json_encode($value)) . '"';
 				}else{
 					if(!is_string($value) && !is_numeric($value) && !is_bool($value)){
-						throw new DBException(2, $this, '', ['arr' => $arr, 'key' => $key, 'value' => $value]);
+						throw new DBException(2, $this, ['arr' => $arr, 'key' => $key, 'value' => $value]);
 					}
 					$sql = '`' . addslashes($key) . '` = "' . addslashes($value) . '"';
 				}
 			}else{
 				if($key == '#'){
 					if(!is_string($value)){
-						throw new DBException(2, $this, '', ['arr' => $arr, 'key' => $key, 'value' => $value]);
+						throw new DBException(2, $this, ['arr' => $arr, 'key' => $key, 'value' => $value]);
 					}
 					$sql = $value;
 				}elseif(substr($key, 0, 1) == '#'){
 					if(!is_string($value) && !is_numeric($value) && !is_bool($value)){
-						throw new DBException(2, $this, '', ['arr' => $arr, 'key' => $key, 'value' => $value]);
+						throw new DBException(2, $this, ['arr' => $arr, 'key' => $key, 'value' => $value]);
 					}
 					$sql = '`' . addslashes(substr($key, 1)) . '` = ' . $value;
 				}elseif(substr($key, 0, 1) == '@'){
 					if(!is_array($value)){
-						throw new DBException(3, $this, '', ['arr' => $arr, 'key' => $key, 'value' => $value]);
+						throw new DBException(3, $this, ['arr' => $arr, 'key' => $key, 'value' => $value]);
 					}
 					$sql = '`' . addslashes(substr($key, 1)) . '` IN ("' . implode('", "', safe2($value, 'sql')) . '")';
 				}else{
 					if(!is_string($value) && !is_numeric($value) && !is_bool($value)){
-						throw new DBException(2, $this, '', ['arr' => $arr, 'key' => $key, 'value' => $value]);
+						throw new DBException(2, $this, ['arr' => $arr, 'key' => $key, 'value' => $value]);
 					}
 					$sql = '`' . addslashes($key) . '` = "' . addslashes($value) . '"';
 				}
@@ -282,20 +330,10 @@ class DB {
 	/**
 	 * 获取错误信息
 	 * 
+	 * @param PDOStatement $stmt 查询返回结果
 	 * @return string
 	 */
-    public function error(){
-        $error = mysqli_error($this->link);
-        $errno = mysqli_errno($this->link);
-        return '[' . $errno . '] ' . $error;
-    }
-	
-	/**
-	 * 关闭数据库连接
-	 * 
-	 * @return boolean
-	 */
-    public function close(){
-        return mysqli_close($this->link);
+    public function error($stmt){
+        return '[' . $stmt->errorCode() . '] ' . $stmt->errorInfo();
     }
 }

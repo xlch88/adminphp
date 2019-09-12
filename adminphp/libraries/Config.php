@@ -85,7 +85,8 @@ class Config {
 				'type'	=> $type
 			];
 			
-			return $GLOBALS[$globalVar] = $value;
+			$GLOBALS[$globalVar] = $value;
+			return &$GLOBALS[$globalVar];
 		}else{
 			return $value;
 		}
