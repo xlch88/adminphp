@@ -13,8 +13,6 @@ class IndexController{
 	}
 	
 	public function dbtest(){
-		var_dump([\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION]);
-		
 		echo '<pre>';
 		echo '连接数据库...' . "\r\n";
 		$db = new DB([

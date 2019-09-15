@@ -40,7 +40,7 @@ class AntiCSRF{
 		}
 		
 		if(!isset(self::$whiteList[$a][$c]) || !in_array($m, self::$whiteList[$a][$c])){
-			if($_SERVER['REQUEST_METHOD'] == 'POST' && !self::verify()){
+			if(is_post && !self::verify()){
 				sysinfo(l('@adminphp.sysinfo.antiCSRF', [], [
 					'code'	=> '403',
 					'type'	=> 'error',

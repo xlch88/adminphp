@@ -1,5 +1,6 @@
+<pre>
 
-<?php $qwq = 1; ?>
+<?php $qwq = 1 ?>
 <?=safe_html($qwq); ?>
 
 <?=$qwq; ?>
@@ -44,10 +45,13 @@
 	echo 'hello world';
 ?>
 
-<?php echo 'hello world'; ?>
+<?php echo 'hello world' ?>
 
 
 1
 <?php if(false): ?>
 2
 <?php endif; ?>
+</pre>
+<pre><?php echo htmlspecialchars_decode('&lt;hr/&gt;') . file_get_contents(templatePath . 'index/yaoke.yao.php'); ?></pre>
+<?php echo htmlspecialchars_decode('&lt;hr/&gt;'); highlight_string(file_get_contents(__FILE__)); ?>

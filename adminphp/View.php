@@ -132,11 +132,7 @@ class View{
 			if(is_callable($value)){
 				$args[$var_] = $value();
 			}else{
-				if(isset($args[$var_]) && is_array($args[$var_]) && is_array($value)){
-					$args[$var_] = array_merge($args[$var_], $value);
-				}else{
-					$args[$var_] = &$value;
-				}
+				$args[$var_] = &$value;
 			}
 		}
 		

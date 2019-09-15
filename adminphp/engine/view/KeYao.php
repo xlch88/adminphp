@@ -99,11 +99,23 @@ class KeYao {
 	}
 	
 	public function render($data){
-		$data = $this->render_remove_comments($data);
-		$data = $this->render_tag($data);
-		$data = $this->render_methods($data);
+		$result = '';
 		
-		return $data;
+        foreach (token_get_all($data) as $token) {
+            $result.= !is_array($token) ? $token : (function($token){
+				list($id, $content) = $token;
+
+				if ($id == T_INLINE_HTML) {
+					$content = $this->render_remove_comments($content);
+					$content = $this->render_tag($content);
+					$content = $this->render_methods($content);
+				}
+				
+				return $content;
+			})($token);
+        }
+		
+		return $result;
 	}
 	
 	/**

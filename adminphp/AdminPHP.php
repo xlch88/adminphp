@@ -91,7 +91,8 @@ class AdminPHP{
 		self::$config = array_merge(self::$config, $config);
 		
 		// Define Constants --------------------------------------------------------------------------------
-		self::define();
+		self::define('method');
+		self::define('appPath');
 
 		// AutoLoader --------------------------------------------------------------------------------------
 		include('AutoLoad.php');
@@ -151,6 +152,7 @@ class AdminPHP{
 		// Run App -----------------------------------------------------------------------------------------
 		Hook::do('app_init');
 		PerformanceStatistics::log('AdmionPHP:app_init');
+		self::define('templatePath');
 		
 		// Run Controller ----------------------------------------------------------------------------------
 		Controller::init();
@@ -165,17 +167,31 @@ class AdminPHP{
 	 * 
 	 * @return void
 	 */
-	static private function define(){
-		if(!realpath(self::$config['path']['app'])){
-			throw new InitException(0, self::$config['path']['app']);
+	static private function define($var){
+		if(defined($var)){
+			return;
 		}
-		
-		if(self::$config['path']['template'] != '' && !realpath(self::$config['path']['template'])){
-			throw new InitException(1, self::$config['path']['template']);
+		switch($var){
+			case 'appPath':
+				if(!realpath(self::$config['path']['app'])){
+					throw new InitException(0, self::$config['path']['app']);
+				}
+				defined('appPath') or define('appPath', self::$config['path']['app'] = realpath(self::$config['path']['app']) . DIRECTORY_SEPARATOR);
+			break;
+			
+			case 'templatePath':
+				if(self::$config['path']['template'] != '' && !realpath(self::$config['path']['template'])){
+					throw new InitException(1, self::$config['path']['template']);
+				}
+				defined('templatePath') or define('templatePath', self::$config['path']['template'] = realpath(self::$config['path']['template']) . DIRECTORY_SEPARATOR);
+			break;
+			
+			case 'method':
+				defined('method')	or define('method', strtolower($_SERVER['REQUEST_METHOD']));
+				defined('is_post')	or define('is_post', strtolower($_SERVER['REQUEST_METHOD']) == 'post');
+				defined('is_get')	or define('is_get', !(strtolower($_SERVER['REQUEST_METHOD']) == 'post'));
+			break;
 		}
-		
-		defined('appPath') 		or define('appPath',		self::$config['path']['app']		= realpath(self::$config['path']['app']) . DIRECTORY_SEPARATOR);
-		defined('templatePath')	or define('templatePath',	self::$config['path']['template']	= realpath(self::$config['path']['template']) . DIRECTORY_SEPARATOR);
 	}
 	
 	/**

@@ -20,6 +20,8 @@ class Config {
 	
 	public $globalVars = [];
 	
+	static private $list = [];
+	
 	/**
 	 * 初始化
 	 * 
@@ -28,7 +30,7 @@ class Config {
 	 * @param string $subfix 文件名后缀
 	 * @return void
 	 */
-	public function __construct($path, $prefix = '', $subfix = '.php'){
+	public function __construct($path, $prefix = '', $subfix = '.php', $id = 'app'){
 		if(!realpath($path)){
 			throw new ConfigException(0, $this);
 		}
@@ -36,6 +38,12 @@ class Config {
 		$this->path = realpath($path) . DIRECTORY_SEPARATOR;
 		$this->prefix = $prefix;
 		$this->subfix = $subfix;
+		
+		self::$list[$id] = &$this;
+	}
+	
+	static function i($id = 'app'){
+		return self::$list[$id];
 	}
 	
 	/**
@@ -86,7 +94,7 @@ class Config {
 			];
 			
 			$GLOBALS[$globalVar] = $value;
-			return &$GLOBALS[$globalVar];
+			return $GLOBALS[$globalVar];
 		}else{
 			return $value;
 		}

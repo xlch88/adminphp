@@ -71,7 +71,7 @@ class Layout {
 		return $methods;
 	}
 	
-	static public function include($file, $args, $moreargs){
+	static public function include($file, $args, $moreargs = []){
 		View::view($file, array_merge($moreargs, $args), 0, true);
 	}
 	
@@ -85,9 +85,10 @@ class Layout {
 	
 	static public function stack($name, $args){
 		unset($args['__file']);
-		
-		foreach(self::$push[$name] as $func){
-			$func($args);
+		if(isset(self::$push[$name])){
+			foreach(self::$push[$name] as $func){
+				$func($args);
+			}
 		}
 	}
 	
@@ -100,8 +101,6 @@ class Layout {
 		
 		if(isset(self::$sections[$name])){
 			self::$sections[$name]($args);
-		}else{
-			throw new \InvalidArgumentException(l('未定义section：' . $name));
 		}
 	}
 }

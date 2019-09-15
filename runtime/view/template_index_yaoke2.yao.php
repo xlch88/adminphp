@@ -11,7 +11,7 @@
 <?php \AdminPHP\Engine\View\KeYao\Layout::stack('qwq', get_defined_vars()); ?>
 
 <?=json_encode(['qwq'=>'0w0']); ?>
-<?php $i = 2; ?>
+<?php $i = 2 ?>
 <?php switch($i):
     case 0: ?>
 		<?=safe_html("i equals 0"); ?>
@@ -30,3 +30,5 @@
 
         <?php break;
 endswitch; ?>
+<pre><?php echo htmlspecialchars_decode('&lt;hr/&gt;') . file_get_contents(templatePath . 'index/yaoke.yao.php'); ?></pre>
+<?php echo htmlspecialchars_decode('&lt;hr/&gt;'); highlight_string(file_get_contents(__FILE__)); ?>

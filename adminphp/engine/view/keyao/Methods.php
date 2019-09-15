@@ -13,6 +13,8 @@
 
 namespace AdminPHP\Engine\View\KeYao;
 
+use AdminPHP\AntiCSRF;
+
 class Methods {
 	function get(){
 		$methods = [];
@@ -124,7 +126,7 @@ class Methods {
 		$methods['php'] = function($match){
 			if(!isset($match[4])) return '<?php ';
 			
-			return '<?php ' . $match[4] . '; ?>';
+			return '<?php ' . substr($match[3], 1, -1) . ' ?>';
 		};
 		
 		$methods['endphp'] = function($match){
@@ -137,10 +139,14 @@ class Methods {
 			return '<?=json_encode(' . $match[4] . '); ?>';
 		};
 		
-		$methods['u'] = function($match){
+		$methods['u'] = $methods['url'] = function($match){
 			if(!isset($match[4])) return;
 			
 			return '<?=url(' . $match[4] . '); ?>';
+		};
+		
+		$methods['formhash'] = function($match){
+			return '<input type="hidden" name="' . AntiCSRF::$argName . '" value="<?=\AdminPHP\AntiCSRF::get(); ?>" />';
 		};
 		
 		return $methods;

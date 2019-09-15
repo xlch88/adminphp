@@ -1,3 +1,4 @@
+<pre>
 {{-- ohhhhhhhhhhhhhhhhhhhhhhh! --}}
 @php($qwq = 1)
 {{ $qwq }}
@@ -47,3 +48,6 @@
 @iftest(qwq)
 2
 @endiftest
+</pre>
+<pre>@php(echo htmlspecialchars_decode('&lt;hr/&gt;') . file_get_contents(templatePath . 'index/yaoke.yao.php');)</pre>
+@php(echo htmlspecialchars_decode('&lt;hr/&gt;'); highlight_string(file_get_contents(__FILE__));)

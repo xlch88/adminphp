@@ -244,7 +244,7 @@ class Language {
 	
 	/**
 	 * 返回数组值，使用文本路径
-	 * 比如$path = 'a.b.c.d.e.f'
+	 * 比如$path = 'a.b.c.d.e'
 	 * 则返回$arr['a']['b']['c']['d']['e']
 	 *
 	 * @param array  $arr       数组

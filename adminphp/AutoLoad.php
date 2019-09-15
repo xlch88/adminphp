@@ -27,10 +27,10 @@ class AutoLoad{
 	public static function init(){
 		spl_autoload_register(['\\AdminPHP\\AutoLoad', 'load']);
 		
-		self::register('AdminPHP', adminphp);
-		self::register('App', appPath);
-		self::register('App\\Model', appPath . 'common/model');
-		self::register('App\\Lib', appPath . 'common/lib');
+		self::register('AdminPHP', adminphp, 'none');
+		self::register('App', appPath, 'none');
+		self::register('App\\Model', appPath . 'common/model', 'none');
+		self::register('App\\Lib', appPath . 'common/lib', 'none');
 		
 		self::register('', adminphp . 'libraries', 'none');
 		self::register('', appPath . 'common/lib', 'none');
@@ -41,12 +41,12 @@ class AutoLoad{
 	 * 
 	 * @param string $class    命名空间
 	 * @param string $path     文件加载路径
-	 * @param string $first|lc 路径首字母处理(lc = 首字母转换小写, uc = 首字母大写)
+	 * @param string $first|lc 路径首字母处理(lc = 首字母转换小写, uc = 首字母大写, none = 不处理)
 	 * @param string $prefix   文件名前缀
 	 * @param string $subfix   文件名后缀
 	 * @return void
 	 */
-	public static function register($class, $path, $first = 'lc', $prefix = '', $subfix = '.php'){
+	public static function register($class, $path, $first = 'none', $prefix = '', $subfix = '.php'){
 		$path = [
 			'prefix'	=> $prefix,
 			'subfix'	=> $subfix,

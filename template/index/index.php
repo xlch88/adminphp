@@ -60,13 +60,32 @@
 			
             <a href="<?=url('index/router', 'id=xlch88'); ?>" target="_blank">URL路由</a>
 			
+            <br/>
+            <br/>
+            <br/>
+			
+            <a href="<?=url('index/setCache'); ?>" target="_blank">置缓存</a>
+			|
+            <a href="<?=url('index/getCache'); ?>" target="_blank">读缓存</a>
+			
+            <br/>
+            <br/>
+            <br/>
+			
+            <a href="<?=url('index/dbtest'); ?>" target="_blank">数据库测试</a>
+			
+            <br/>
+            <br/>
+            <br/>
+			
+            <a href="<?=url('index/keyao'); ?>" target="_blank">KeYao模板引擎测试</a>
+            <a href="<?=url('index/keyao'); ?>" target="_blank">KeYao模板引擎测试2</a>
 			
             <br/>
             <br/>
 			
 			<img src="<?=url('verifyCode/get'); ?>">
 			
-			<p>数据库连接状态: <?php var_dump($dbStatus); ?></p>
 			<p>
 				- 语言列表 -<br/>
 				<?php foreach(\AdminPHP\Language::$languages as $lang){ ?>

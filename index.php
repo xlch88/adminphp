@@ -10,7 +10,7 @@
  | Author  : Xlch88 (i@xlch.me)
  | LICENSE : WTFPL http://www.wtfpl.net/about
  * ----------------------------------------------- */
-$GLOBALS['q'] = 0;
+
 // 定义常量,这些常量缺一不可
 define('root',		dirname(__FILE__) . DIRECTORY_SEPARATOR);
 
