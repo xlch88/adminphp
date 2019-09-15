@@ -84,5 +84,8 @@ include(root . 'adminphp' . DIRECTORY_SEPARATOR . 'Init.php');
 		'enable'	=> true,											//是否启用
 		'engine'	=> 'file',											//存储引擎(file=文件)
 		'path'		=> root . 'runtime' . DIRECTORY_SEPARATOR . 'cache'	//文件保存路径
-	]
+	],
+	
+	/* 时区设置 date_default_timezone_set() */
+	'timezone'	=> 'PRC'
 ));

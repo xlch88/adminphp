@@ -21,9 +21,6 @@ if(version_compare(PHP_VERSION,'5.5.0', '<')){
 	die();
 }
 
-session_start();
-date_default_timezone_set('PRC');
-
 /* 性能统计 START */
 include(adminphp . 'PerformanceStatistics.php');
 \AdminPHP\PerformanceStatistics::begin();

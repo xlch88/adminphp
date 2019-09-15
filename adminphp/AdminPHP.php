@@ -78,7 +78,9 @@ class AdminPHP{
 		
 		'view'		=> [
 			'engine'	=> 'keyao'
-		]
+		],
+		
+		'timezone'	=> 'PRC'
 	];
 	
 	/**
@@ -90,56 +92,59 @@ class AdminPHP{
 		global $a, $c, $m;
 		self::$config = array_merge(self::$config, $config);
 		
-		// Define Constants --------------------------------------------------------------------------------
+		// Set timezone
+		date_default_timezone_set(self::$config['timezone']);
+		
+		// Define Constants
 		self::define('method');
 		self::define('appPath');
 
-		// AutoLoader --------------------------------------------------------------------------------------
+		// AutoLoader
 		include('AutoLoad.php');
 		AutoLoad::init();
 
-		// Performance Statistics --------------------------------------------------------------------------
+		// Performance Statistics
 		PerformanceStatistics::$show	= self::$config['performanceStatistics']['show'];
 		PerformanceStatistics::$enable	= self::$config['performanceStatistics']['enable'];
 
-		// Include APP File --------------------------------------------------------------------------------
+		// Include APP File
 		include(appPath . 'app.php');
 		PerformanceStatistics::log('AdmionPHP:include_app_file');
 
-		// Load Functions File -----------------------------------------------------------------------------
+		// Load Functions File
 		include('functions/functions.helper.php');
 		include('functions/functions.safe.php');
 		include('functions/functions.adminphp.php');
 		Hook::do('adminphp_init_functions');
 		PerformanceStatistics::log('AdmionPHP:init_functions');
 
-		// Language ----------------------------------------------------------------------------------------
+		// Language
 		Language::init(self::$config['language']['use'], self::$config['language']['cookieName']);
 		PerformanceStatistics::log('AdmionPHP:init_language');
 		
-		// ErrorManager ------------------------------------------------------------------------------------
+		// ErrorManager
 		self::registerErrorManager();
 		
-		// Cache  ------------------------------------------------------------------------------------------
+		// Cache
 		if(self::$config['cache']['enable']){
 			Cache::init(self::$config['cache']);
 		}
 		
-		// View --------------------------------------------------------------------------------------------
+		// View
 		View::init(self::$config['view']);
 		
-		// Load App Functions File -------------------------------------------------------------------------
+		// Load App Functions File
 		if(is_file(appPath . 'functions.php'))
 			include(appPath . 'functions.php');
 
 		Hook::do('app_init_functions');
 		PerformanceStatistics::log('AdmionPHP:init_app_function');
 		
-		// Router ------------------------------------------------------------------------------------------
+		// Router
 		Router::init(self::$config['router']);
 		PerformanceStatistics::log('AdmionPHP:init_router');
 
-		// AntiCSRF ----------------------------------------------------------------------------------------
+		// AntiCSRF
 		if(self::$config['AntiCSRF']['enable']){
 			AntiCSRF::init(
 				self::$config['AntiCSRF']['cookieName'],
@@ -149,12 +154,12 @@ class AdminPHP{
 			);
 		}
 		
-		// Run App -----------------------------------------------------------------------------------------
+		// Run App
 		Hook::do('app_init');
 		PerformanceStatistics::log('AdmionPHP:app_init');
 		self::define('templatePath');
 		
-		// Run Controller ----------------------------------------------------------------------------------
+		// Run Controller
 		Controller::init();
 		
 		/* 性能统计 END */
