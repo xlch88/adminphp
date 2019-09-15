@@ -79,7 +79,7 @@
             <br/>
 			
             <a href="<?=url('index/keyao'); ?>" target="_blank">KeYao模板引擎测试</a>
-            <a href="<?=url('index/keyao'); ?>" target="_blank">KeYao模板引擎测试2</a>
+            <a href="<?=url('index/keyao2'); ?>" target="_blank">KeYao模板引擎测试2</a>
 			
             <br/>
             <br/>

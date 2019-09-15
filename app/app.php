@@ -8,7 +8,7 @@ use AdminPHP\Engine\View\KeYao;
 use DB;
 
 Hook::add('app_init_router', function(){
-	$routerConfig = include(appPath . 'config/router.php');
+	$routerConfig = include(appPath . 'Config/router.php');
 	
 	Router::addRegexes($routerConfig['regex']);
 	Router::addRoutes($routerConfig['router']);
@@ -18,7 +18,7 @@ Hook::add('app_init', function(){
 	global $db;
 	
 	// DB ------------------------------------------------------------
-	$db_config = include(appPath . 'config/db.php');
+	$db_config = include(appPath . 'Config/db.php');
 	//$db = new DB($db_config, false);
 	$db = false;
 	

@@ -26,5 +26,5 @@
         {{ "i is not equal to 0, 1 or 2" }}
         @breakswitch
 @endswitch
-<pre>@php(echo htmlspecialchars_decode('&lt;hr/&gt;') . file_get_contents(templatePath . 'index/yaoke.yao.php');)</pre>
+<pre>@php(echo htmlspecialchars_decode('&lt;hr/&gt;') . file_get_contents(templatePath . 'index/yaoke2.yao.php');)</pre>
 @php(echo htmlspecialchars_decode('&lt;hr/&gt;'); highlight_string(file_get_contents(__FILE__));)

@@ -15,8 +15,8 @@ namespace AdminPHP\Engine\View;
 
 use AdminPHP\AdminPHP;
 use AdminPHP\Exception\ViewException;
-use AdminPHP\Engine\View\Keyao\Methods;
-use AdminPHP\Engine\View\Keyao\Layout;
+use AdminPHP\Engine\View\KeYao\Methods;
+use AdminPHP\Engine\View\KeYao\Layout;
 
 class KeYao {
 	private $regex = [

@@ -50,7 +50,7 @@ class ErrorManager{
 		}
 		
 		if(!class_exists('\\AdminPHP\\Exception\\Error\\WarningException', false)){
-			include(adminphp . 'exception' . DIRECTORY_SEPARATOR . 'Errors.php');
+			include(adminphp . 'Exception' . DIRECTORY_SEPARATOR . 'Errors.php');
 		}
 		
 		switch($errno){
