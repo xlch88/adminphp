@@ -29,11 +29,11 @@ class AutoLoad{
 		
 		self::register('AdminPHP', adminphp, 'none');
 		self::register('App', appPath, 'none');
-		self::register('App\\Model', appPath . 'common/model', 'none');
-		self::register('App\\Lib', appPath . 'common/lib', 'none');
+		self::register('App\\Model', appPath . 'Common/Model', 'none');
+		self::register('App\\Lib', appPath . 'Common/Lib', 'none');
 		
-		self::register('', adminphp . 'libraries', 'none');
-		self::register('', appPath . 'common/lib', 'none');
+		self::register('', adminphp . 'Libraries', 'none');
+		self::register('', appPath . 'Common/Lib', 'none');
 	}
 	
 	/**

@@ -18,7 +18,7 @@ class Language {
 	static private $subfix		= '.php';
 	static private $custom		= null;	//程序定义
 	static private $path		= [
-		adminphp . 'language' . DIRECTORY_SEPARATOR
+		adminphp . 'Language' . DIRECTORY_SEPARATOR
 	];
 	
 	static public $languages	= [];		//语言列表

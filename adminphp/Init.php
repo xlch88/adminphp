@@ -17,7 +17,7 @@ define('adminphp_version',		2002);
 define('adminphp_version_name', '2.0');
 
 if(version_compare(PHP_VERSION,'5.5.0', '<')){
-	include(adminphp . 'template/oldVersion.php');
+	include(adminphp . 'Template/oldVersion.php');
 	die();
 }
 

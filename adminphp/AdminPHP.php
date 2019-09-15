@@ -112,9 +112,9 @@ class AdminPHP{
 		PerformanceStatistics::log('AdmionPHP:include_app_file');
 
 		// Load Functions File
-		include('functions/functions.helper.php');
-		include('functions/functions.safe.php');
-		include('functions/functions.adminphp.php');
+		include('Functions/functions.helper.php');
+		include('Functions/functions.safe.php');
+		include('Functions/functions.adminphp.php');
 		Hook::do('adminphp_init_functions');
 		PerformanceStatistics::log('AdmionPHP:init_functions');
 

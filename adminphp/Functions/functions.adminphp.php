@@ -165,7 +165,7 @@ function notice($notice, $go = '', $time = 0){
 	}
 	
 	extract($notice);
-	include(adminphp . 'template/notice.php');
+	include(adminphp . 'Template/notice.php');
 	
 	/* 性能统计 END */
 	\AdminPHP\PerformanceStatistics::log('END');
@@ -284,7 +284,7 @@ function sysinfo($args = []){
 	extract($defaultValue);
 	
 	@header('HTTP/1.1 ' . $code);
-	include(adminphp . 'template/sysinfo.php');
+	include(adminphp . 'Template/sysinfo.php');
 	
 	/* 性能统计 END */
 	\AdminPHP\PerformanceStatistics::log('END');
