@@ -65,26 +65,20 @@ class Config {
 			}else return false;
 		}
 		
-		$value = include($filename);
-		$isThrow = false;
-		switch($type){
-			case 'json':
-				if(!($value = json_decode($value, true))){
-					$isThrow = true;
-				}
-			break;
-			
-			case 'array':
-				if(!is_array($value)){
-					$isThrow = true;
-				}
-			break;
-		}
-		
-		if($isThrow){
-			if($throw){
-				throw new ConfigException(2, $filename, $type);
-			}else return false;
+		try{
+			$value = include($filename);
+			switch($type){
+				case 'json':
+					$value = json_decode($value, true);
+				break;
+				
+				case 'array':
+					if(!is_array($value))
+						throw new Exception(l('非数组类型!'));
+				break;
+			}
+		}catch(Exception $ex){
+			throw new ConfigException(2, $this, $filename, $type, $ex);
 		}
 		
 		if(is_string($globalVar) && $globalVar !== ''){

@@ -6,9 +6,14 @@ use AdminPHP\Router;
 use AdminPHP\View;
 use AdminPHP\Engine\View\KeYao;
 use DB;
+use Config;
+
+Hook::add('app_include', function(){
+	new Config(appPath . 'Config');
+});
 
 Hook::add('app_init_router', function(){
-	$routerConfig = include(appPath . 'Config/router.php');
+	$routerConfig = Config::i()->read('router', 'array');
 	
 	Router::addRegexes($routerConfig['regex']);
 	Router::addRoutes($routerConfig['router']);
@@ -18,7 +23,7 @@ Hook::add('app_init', function(){
 	global $db;
 	
 	// DB ------------------------------------------------------------
-	$db_config = include(appPath . 'Config/db.php');
+	$db_config = Config::i()->read('db', 'array');
 	//$db = new DB($db_config, false);
 	$db = false;
 	
@@ -33,6 +38,6 @@ Hook::add('app_init', function(){
 	});
 	
 	KeYao::setIfMethod('iftest', function($if){
-		return false;
+		return is_numeric($if);
 	});
 });

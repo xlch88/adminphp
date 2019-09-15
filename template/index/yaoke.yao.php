@@ -45,8 +45,15 @@
 
 {{-- @qwq('wawawa') --}}
 1
-@iftest(qwq)
-2
+
+@php($test1 = 123456;)
+@php($test2 = 'kjkjkj';)
+
+@iftest($test1)
+$test1 is number
+@endiftest
+@iftest($test2)
+$test2 is number
 @endiftest
 </pre>
 <pre>@php(echo htmlspecialchars_decode('&lt;hr/&gt;') . file_get_contents(templatePath . 'index/yaoke.yao.php');)</pre>

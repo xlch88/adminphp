@@ -35,6 +35,7 @@ class KeYao {
 	private $footer = '';
 	
 	static private $methods = [];
+	static public $customIfMethods = [];
 	
 	public function __construct($config){
 		$config = array_merge([
@@ -60,10 +61,11 @@ class KeYao {
 	}
 	
 	static public function setIfMethod(string $name, $func){
-		self::$methods[$name] = function($match)use($func){
+		self::$customIfMethods[$name] = $func;
+		self::$methods[$name] = function($match)use($name){
 			if(!isset($match[4])) return;
 			
-			return '<?php if(' . ($func($match[4]) ? 'true' : 'false') . '): ?>';
+			return '<?php if(\AdminPHP\Engine\View\KeYao::$customIfMethods[\'' . $name . '\'](' . $match[4] . ')): ?>';
 		};
 		
 		self::$methods['end' . $name] = function($match){

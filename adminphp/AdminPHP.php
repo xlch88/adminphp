@@ -92,6 +92,10 @@ class AdminPHP{
 		global $a, $c, $m;
 		self::$config = array_merge(self::$config, $config);
 		
+		// Performance Statistics
+		PerformanceStatistics::$show	= self::$config['performanceStatistics']['show'];
+		PerformanceStatistics::$enable	= self::$config['performanceStatistics']['enable'];
+		
 		// Set timezone
 		date_default_timezone_set(self::$config['timezone']);
 		
@@ -100,24 +104,24 @@ class AdminPHP{
 		self::define('appPath');
 
 		// AutoLoader
-		include('AutoLoad.php');
+		include(adminphp . 'AutoLoad.php');
 		AutoLoad::init();
 
-		// Performance Statistics
-		PerformanceStatistics::$show	= self::$config['performanceStatistics']['show'];
-		PerformanceStatistics::$enable	= self::$config['performanceStatistics']['enable'];
+		// Load App Functions File
+		if(is_file(appPath . 'functions.php'))
+			include(appPath . 'functions.php');
+		
+		// Load Functions File
+		include(adminphp . 'Functions/functions.helper.php');
+		include(adminphp . 'Functions/functions.safe.php');
+		include(adminphp . 'Functions/functions.adminphp.php');
+		PerformanceStatistics::log('AdmionPHP:init_functions');
 
 		// Include APP File
 		include(appPath . 'app.php');
 		PerformanceStatistics::log('AdmionPHP:include_app_file');
-
-		// Load Functions File
-		include('Functions/functions.helper.php');
-		include('Functions/functions.safe.php');
-		include('Functions/functions.adminphp.php');
-		Hook::do('adminphp_init_functions');
-		PerformanceStatistics::log('AdmionPHP:init_functions');
-
+		Hook::do('app_include');
+		
 		// Language
 		Language::init(self::$config['language']['use'], self::$config['language']['cookieName']);
 		PerformanceStatistics::log('AdmionPHP:init_language');
@@ -132,13 +136,6 @@ class AdminPHP{
 		
 		// View
 		View::init(self::$config['view']);
-		
-		// Load App Functions File
-		if(is_file(appPath . 'functions.php'))
-			include(appPath . 'functions.php');
-
-		Hook::do('app_init_functions');
-		PerformanceStatistics::log('AdmionPHP:init_app_function');
 		
 		// Router
 		Router::init(self::$config['router']);
