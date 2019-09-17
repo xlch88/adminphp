@@ -24,15 +24,15 @@ class Layout {
 		$methods = [];
 		
 		$methods['section'] = function($match){
-			if(!isset($match[4])) return;
+			if(!isset($match[4]) || $match[4] == '') return;
 			
-			return '<?php \\AdminPHP\\Engine\\View\\KeYao\\Layout::setSection(' . $match[4] . ', function($__args){ extract($__args); foreach(\AdminPHP\View::$globalVar as $__globalVar){ global $$__globalVar; } unset($__args, $__globalVar); ?>';
+			return '<?php \\AdminPHP\\Engine\\View\\KeYao\\Layout::setSection(' . substr($match[3], 1, -1) . ', function($__args){ extract($__args); foreach(\AdminPHP\View::$globalVar as $__globalVar){ global $$__globalVar; } unset($__args, $__globalVar); ?>';
 		};
 		
 		$methods['push'] = $methods['prepend'] = function($match){
-			if(!isset($match[4])) return;
+			if(!isset($match[4]) || $match[4] == '') return;
 			
-			return '<?php \\AdminPHP\\Engine\\View\\KeYao\\Layout::push(' . $match[4] . ', function($__args){ extract($__args); foreach(\AdminPHP\View::$globalVar as $__globalVar){ global $$__globalVar; } unset($__args, $__globalVar); ?>';
+			return '<?php \\AdminPHP\\Engine\\View\\KeYao\\Layout::push(' . substr($match[3], 1, -1) . ', function($__args){ extract($__args); foreach(\AdminPHP\View::$globalVar as $__globalVar){ global $$__globalVar; } unset($__args, $__globalVar); ?>';
 		};
 		
 		$methods['endpush'] = $methods['endsection'] = function($match){
@@ -44,25 +44,25 @@ class Layout {
 		};
 		
 		$methods['yield'] = function($match){
-			if(!isset($match[4])) return;
+			if(!isset($match[4]) || $match[4] == '') return;
 			
-			return '<?php \\AdminPHP\\Engine\\View\\KeYao\\Layout::getSection(' . $match[4] . ', get_defined_vars()); ?>';
+			return '<?php \\AdminPHP\\Engine\\View\\KeYao\\Layout::getSection(' . substr($match[3], 1, -1) . ', get_defined_vars()); ?>';
 		};
 		
 		$methods['stack'] = function($match){
-			if(!isset($match[4])) return;
+			if(!isset($match[4]) || $match[4] == '') return;
 			
-			return '<?php \\AdminPHP\\Engine\\View\\KeYao\\Layout::stack(' . $match[4] . ', get_defined_vars()); ?>';
+			return '<?php \\AdminPHP\\Engine\\View\\KeYao\\Layout::stack(' . substr($match[3], 1, -1) . ', get_defined_vars()); ?>';
 		};
 		
 		$methods['include'] = function($match){
-			if(!isset($match[4])) return;
+			if(!isset($match[4]) || $match[4] == '') return;
 			
-			return '<?php \\AdminPHP\\Engine\\View\\KeYao\\Layout::include(' . $match[4] . ', get_defined_vars()); ?>';
+			return '<?php \\AdminPHP\\Engine\\View\\KeYao\\Layout::include(' . substr($match[3], 1, -1) . ', get_defined_vars()); ?>';
 		};
 		
 		$methods['extends'] = function($match, &$data) use ($methods){
-			if(!isset($match[4])) return;
+			if(!isset($match[4]) || $match[4] == '') return;
 			
 			$data .= $methods['include']($match);
 			return '';

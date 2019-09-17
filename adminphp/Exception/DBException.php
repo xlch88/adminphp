@@ -52,5 +52,8 @@ class DBException extends Exception{
 		}
 		
 		$this->dbConfig = $db->config;
+		
+		$this->dbConfig['username'] = '**********';
+		$this->dbConfig['password'] = '**********';
     }
 }

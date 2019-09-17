@@ -98,15 +98,18 @@ class AdminPHP{
 		
 		// Set timezone
 		date_default_timezone_set(self::$config['timezone']);
-		
-		// Define Constants
-		self::define('method');
-		self::define('appPath');
 
 		// AutoLoader
 		include(adminphp . 'AutoLoad.php');
 		AutoLoad::init();
-
+		
+		// Define Constants
+		self::define('method');
+		self::define('appPath');
+		
+		// AutoLoader
+		AutoLoad::initRegister();
+		
 		// Load App Functions File
 		if(is_file(appPath . 'functions.php'))
 			include(appPath . 'functions.php');
@@ -151,10 +154,11 @@ class AdminPHP{
 			);
 		}
 		
+		self::define('templatePath');
+		
 		// Run App
 		Hook::do('app_init');
 		PerformanceStatistics::log('AdmionPHP:app_init');
-		self::define('templatePath');
 		
 		// Run Controller
 		Controller::init();

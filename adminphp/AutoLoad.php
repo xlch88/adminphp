@@ -26,14 +26,15 @@ class AutoLoad{
 	 */
 	public static function init(){
 		spl_autoload_register(['\\AdminPHP\\AutoLoad', 'load']);
-		
+		self::register('', adminphp . 'Libraries', 'none');
 		self::register('AdminPHP', adminphp, 'none');
+	}
+	
+	public static function initRegister(){
+		self::register('', appPath . 'Common/Lib', 'none');
 		self::register('App', appPath, 'none');
 		self::register('App\\Model', appPath . 'Common/Model', 'none');
 		self::register('App\\Lib', appPath . 'Common/Lib', 'none');
-		
-		self::register('', adminphp . 'Libraries', 'none');
-		self::register('', appPath . 'Common/Lib', 'none');
 	}
 	
 	/**

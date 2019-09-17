@@ -27,9 +27,9 @@ class Methods {
 			'foreach'
 		] as $method){
 			$methods[$method] = function($match)use($method){
-				if(!isset($match[4])) return;
+				if(!isset($match[4]) || $match[4] == '') return;
 				
-				return '<?php ' . $method . '(' . (isset($match[4]) ? $match[4] : '') . '): ?>';
+				return '<?php ' . $match[1] . (isset($match[3]) ? $match[3] : '') . ': ?>';
 			};
 		}
 		
@@ -55,9 +55,9 @@ class Methods {
 		
 		
 		$methods['switch'] = function($match){
-			if(!isset($match[4])) return;
+			if(!isset($match[4]) || $match[4] == '') return;
 			
-			return '<?php switch(' . $match[4] . '):';
+			return '<?php switch' . $match[3] . ':';
 		};
 		
 		$methods['endswitch'] = function($match){
@@ -65,7 +65,7 @@ class Methods {
 		};
 		
 		$methods['case'] = function($match){
-			if(!isset($match[4])) return;
+			if(!isset($match[4]) || $match[4] == '') return;
 			
 			return 'case ' . $match[4] . ': ?>';
 		};
@@ -79,7 +79,7 @@ class Methods {
 		};
 		
 		$methods['continue'] = function($match){
-			if(!isset($match[4])){
+			if(!isset($match[4]) || $match[4] == ''){
 				return '<?php continue; ?>';
 			}
 			
@@ -87,11 +87,11 @@ class Methods {
 				return '<?php continue ' . $match[4] . '; ?>';
 			}
 			
-			return '<?php if(' . $match[4] . ') continue; ?>';
+			return '<?php if' . $match[3] . ' continue; ?>';
 		};
 		
 		$methods['break'] = function($match){
-			if(!isset($match[4])){
+			if(!isset($match[4]) || $match[4] == ''){
 				return '<?php break; ?>';
 			}
 			
@@ -99,24 +99,24 @@ class Methods {
 				return '<?php break ' . $match[4] . '; ?>';
 			}
 			
-			return '<?php if(' . $match[4] . ') break; ?>';
+			return '<?php if' . $match[3] . ' break; ?>';
 		};
 		
 		$methods['unless'] = function($match){
-			if(!isset($match[4])) return;
+			if(!isset($match[4]) || $match[4] == '') return;
 			
-			return '<?php if(!(' . $match[4] . ')): ?>';
+			return '<?php if(!' . $match[3] . '): ?>';
 		};
 		$methods['isset'] = function($match){
-			if(!isset($match[4])) return;
+			if(!isset($match[4]) || $match[4] == '') return;
 			
-			return '<?php if(isset(' . $match[4] . ')): ?>';
+			return '<?php if(isset' . $match[3] . '): ?>';
 		};
 		
 		$methods['empty'] = function($match){
-			if(!isset($match[4])) return;
+			if(!isset($match[4]) || $match[4] == '') return;
 			
-			return '<?php if(empty(' . $match[4] . ')): ?>';
+			return '<?php if(empty' . $match[3] . '): ?>';
 		};
 		
 		$methods['endunless'] = $methods['endempty'] = $methods['endisset'] = function($match){
@@ -124,7 +124,7 @@ class Methods {
 		};
 		
 		$methods['php'] = function($match){
-			if(!isset($match[4])) return '<?php ';
+			if(!isset($match[4]) || $match[4] == '') return '<?php ';
 			
 			return '<?php ' . substr($match[3], 1, -1) . ' ?>';
 		};
@@ -134,15 +134,15 @@ class Methods {
 		};
 		
 		$methods['json'] = function($match){
-			if(!isset($match[4])) return;
+			if(!isset($match[4]) || $match[4] == '') return;
 			
-			return '<?=json_encode(' . $match[4] . '); ?>';
+			return '<?=json_encode' . $match[3] . '; ?>';
 		};
 		
 		$methods['u'] = $methods['url'] = function($match){
-			if(!isset($match[4])) return;
+			if(!isset($match[4]) || $match[4] == '') return;
 			
-			return '<?=url(' . $match[4] . '); ?>';
+			return '<?=url' . $match[3] . '; ?>';
 		};
 		
 		$methods['formhash'] = function($match){

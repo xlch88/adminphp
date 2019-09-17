@@ -18,7 +18,7 @@ use AdminPHP\Exception\ViewException;
 use AdminPHP\Engine\View\KeYao as ViewEngine_KeYao;
 
 class View{
-	private static $globalVar = [];
+	private static $globalVar = [ 'a', 'c', 'm' ];
 	private static $var = [];
 	private static $engine = '';
 	private static $engineClass = null;
@@ -111,6 +111,8 @@ class View{
 	public static function view($file, $args = [], $isRoot = 0, $engine = true){
 		global $a, $c, $m;
 		
+		Hook::do('template_view', ['file' => &$file, 'args' => &$args, 'isRoot' => &$isRoot, 'engine' => &$engine]);
+			
 		if($engine){
 			$file = self::$engineClass->getFile($file, $isRoot);
 		}else{
@@ -129,10 +131,12 @@ class View{
 		}
 		
 		foreach(self::$var as $var_ => $value){
-			if(is_callable($value)){
-				$args[$var_] = $value();
-			}else{
-				$args[$var_] = &$value;
+			if(!isset($args[$var_])){
+				if(is_callable($value)){
+					$args[$var_] = $value();
+				}else{
+					$args[$var_] = &$value;
+				}
 			}
 		}
 		

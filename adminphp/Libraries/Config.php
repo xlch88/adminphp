@@ -136,10 +136,10 @@ class Config {
 			
 			default:
 				$result = "<?php\r\nreturn ";
-				$result.= var_export($value);
+				$result.= var_export($value, true);
 			break;
 		}
 		
-		return $value;
+		return $result;
 	}
 }

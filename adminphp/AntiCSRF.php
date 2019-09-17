@@ -35,7 +35,7 @@ class AntiCSRF{
 	public static function init($cookieName = 'adminphp_formhash', $sessionName = 'adminphp_formhash', $argName = 'formhash', $varName = 'formHash'){
 		global $a,$c,$m;
 		
-		if(session_status() === PHP_SESSION_DISABLED){
+		if(session_status() === PHP_SESSION_NONE){
 			session_start();
 		}
 		

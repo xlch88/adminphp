@@ -87,7 +87,7 @@ class ErrorManager{
 			'message'		=> $ex->getMessage(),
 			'code'			=> $ex->getCode(),
 			'file'			=> $ex->getFile(),
-			'fileText'		=> self::getFileLines($ex->getFile(), $ex->getLine() - 4, 8, $ex->getLine()),
+			'fileText'		=> self::getFileLines($ex->getFile(), $ex->getLine() - 10, 20, $ex->getLine()),
 			'line'			=> $ex->getLine(),
 			'class'			=> get_class($ex),
 			'trace'			=> self::formatTrace($ex->getTrace()),

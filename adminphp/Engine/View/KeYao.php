@@ -14,13 +14,14 @@
 namespace AdminPHP\Engine\View;
 
 use AdminPHP\AdminPHP;
+use AdminPHP\Hook;
 use AdminPHP\Exception\ViewException;
 use AdminPHP\Engine\View\KeYao\Methods;
 use AdminPHP\Engine\View\KeYao\Layout;
 
 class KeYao {
 	private $regex = [
-		'method'	=> '/\B@(@?\w+(?:::\w+)?)([ \t]*)(\( ( (?>[^()]+) | (?3) )* \))?/x',
+		'method'	=> '/\B@(@?\w+(?:::\w+)?)([ \t]*)(\( ( (?>[^()]+) | (?3) )* \))?([\r\n]*)/x',
 		'echo'		=> '/(@)?%s\s*(.+?)\s*%s(\r?\n)?/s',
 		'echoOr'	=> '/^(?=\$)(.+?)(?:\s+or\s+)(.+?)$/s',
 		'comment'	=> '/%s--(.*?)--%s/s'
@@ -75,18 +76,23 @@ class KeYao {
 	
 	public function getFile($file, $isRoot){
 		$_templateFilePath = $isRoot ? '' : templatePath;
+		$_file = $file . $this->config['file_subfix'];
 		
-		if(is_file($_templateFilePath . $file . $this->config['file_subfix'])){ //不处理
-			return $_templateFilePath . $file . $this->config['file_subfix'];
+		Hook::do('template_file', ['templateFilePath' => &$_templateFilePath, 'templateFile' => &$_file, 'isRoot' => $isRoot]);
+			
+		if(is_file($_templateFilePath . $_file)){ //不处理
+			return $_templateFilePath . $_file;
 		}
 		
-		$_file = $_templateFilePath . $file . $this->config['file_render'];
-		
-		$cacheFile = str_replace([root, '\\', '_', '/'], ['', '/', '__', '_'], realpath($_file));
+		$_file = $file . $this->config['file_render'];
+		Hook::do('template_file', ['templateFilePath' => &$_templateFilePath, 'templateFile' => &$_file, 'isRoot' => $isRoot]);
+		$_file = $_templateFilePath . $_file;
 		
 		if(!is_file($_file)){
 			throw new ViewException(0, $_templateFilePath, $file, $_file);
 		}
+		
+		$cacheFile = str_replace([root, '\\', '_', '/'], ['', '/', '__', '_'], realpath($_file));
 		
 		if(!is_file($this->config['path'] . $cacheFile) || AdminPHP::$config['debug']){
 			$data = file_get_contents($_file);
@@ -102,6 +108,7 @@ class KeYao {
 	
 	public function render($data){
 		$result = '';
+		$this->footer = '';
 		
         foreach (token_get_all($data) as $token) {
             $result.= !is_array($token) ? $token : (function($token){
@@ -116,6 +123,9 @@ class KeYao {
 				return $content;
 			})($token);
         }
+		
+		$result .= $this->footer;
+		$result = str_replace(['?><?php', '?> <?php'], '', $result);
 		
 		return $result;
 	}
@@ -165,17 +175,18 @@ class KeYao {
 	 * @param string $data 数据
 	 */
 	private function render_methods($data) {
-		$this->footer = '';
-		
         $data = preg_replace_callback($this->regex['method'], function ($match){
 			if(isset(self::$methods[$match[1]])){
-				return self::$methods[$match[1]]($match, $this->footer);
+				$result = self::$methods[$match[1]]($match, $this->footer);
+				if($result !== ''){
+					return $result . $match[5];
+				}else{
+					return '';
+				}
 			}
 			
 			return $match[0];
 		}, $data);
-		
-		$data.= $this->footer;
 		
 		return $data;
 	}

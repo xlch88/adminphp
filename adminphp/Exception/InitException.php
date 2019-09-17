@@ -23,7 +23,7 @@ class InitException extends Exception{
 		
 		switch($this->code){
 			case 0:
-				$this->message = l('应用目录不存在！');
+				$this->message = 'Application directory does not exist.';
 			break;
 			
 			case 1:

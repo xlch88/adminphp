@@ -24,11 +24,11 @@ class DB {
 		'type'		=> 'mysql',			//类型[mysql,sqllite]
 		
 		/* --     MySQL      -- */
-		'ip'		=> '127.0.0.1',		//IP
+		'ip'		=> '',				//IP
 		'port'		=> 3306,			//端口
-		'username'	=> 'root',			//用户名
-		'password'	=> 'root',			//密码
-		'db'		=> 'test',			//数据库名
+		'username'	=> '',				//用户名
+		'password'	=> '',				//密码
+		'db'		=> '',				//数据库名
 		'unixSocket'=> '',				//使用unix socket连接，若此项不为空，则忽略上面字段直接使用此字段进行连接
 		
 		/* --     SQLite     -- */
