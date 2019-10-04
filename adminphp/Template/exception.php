@@ -1,3 +1,6 @@
+<!-- 
+<?php print_r($errorInfo); ?>
+-->
 <link href="https://cdn.bootcss.com/highlight.js/9.15.9/styles/solarized-light.min.css" rel="stylesheet">
 <div class="info exception">
 	<div class="img img_exception"></div>

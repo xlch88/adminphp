@@ -59,8 +59,6 @@ class DB {
 	 */
 	public function __construct($config, $isThrow = true){
 		$this->config = array_merge($this->config, $config);
-		$this->config['options'][PDO::ATTR_ERRMODE] = PDO::ERRMODE_EXCEPTION;
-		
 		$this->isThrow = $isThrow;
 		
 		try{
@@ -79,6 +77,7 @@ class DB {
 					break;
 				}
 			}
+			$this->link->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 		}catch(PDOException $e){
 			if($this->isThrow){
 				throw new DBException(0, $this, [
@@ -164,11 +163,11 @@ class DB {
 	 * 以数组形式插入行并返回插入的主键ID
 	 * 
 	 * @param string $table 表名
-	 * @param array $array 数组
+	 * @param mixed $data 数组
 	 * @return int
 	 */
-	public function insert_array(string $table, array $array){
-		$sql = 'INSERT INTO `[T]' . $table . '` SET ' . $this->arr2sql($array, 'insert');
+	public function insert_array(string $table, $data){
+		$sql = 'INSERT INTO `[T]' . $table . '` SET ' . (is_array($data) ? $this->arr2sql($data, 'insert') : $data);
 		
 		return $this->insert($sql);
 	}
@@ -190,7 +189,7 @@ class DB {
 			return 0;
 		}
 		
-		return $int ? (int)$result[0][0] : $result[0][0];
+		return $int ? (int)$result[0] : $result[0];
 	}
 	
 	public function handleSQL($sql){
@@ -210,14 +209,16 @@ class DB {
 	 * @param boolean $isThrow 出现错误是否抛出异常
 	 * @return result
 	 */
-	public function query($sql, $args = [], $isThrow = true){
+	public function query($sql, $args = [], $isThrow = null){
+		if($isThrow === null) $isThrow = $this->isThrow;
+		
 		$sql = $this->handleSQL($sql);
-		$stmt = $this->link->prepare($sql);
 		
 		try{
+			$stmt = $this->link->prepare($sql);
 			$stmt->execute($args);
 		}catch(PDOException $ex){
-			if($this->isThrow){
+			if($isThrow){
 				throw new DBException(1, $this, [
 					'sql'		=> $sql,
 					'args'		=> $args,
@@ -240,10 +241,26 @@ class DB {
 	 * @param boolean $isThrow 出现错误是否抛出异常
 	 * @return result
 	 */
-	public function exec($sql){
-		$sql = $this->handleSQL($sql);
+	public function exec($sql, $isThrow = null){
+		if($isThrow === null) $isThrow = $this->isThrow;
 		
-		return $this->link->exec($sql);
+		try{
+			$sql = $this->handleSQL($sql);
+			$return = $this->link->exec($sql);
+		}catch(PDOException $ex){
+			if($isThrow){
+				throw new DBException(1, $this, [
+					'sql'		=> $sql,
+					'args'		=> $args,
+					'errorCode'	=> $ex->errorCode(),
+					'errorInfo'	=> $ex->errorInfo()
+				]);
+			}
+			
+			return false;
+		}
+		
+		return $return;
 	}
 	
 	/**

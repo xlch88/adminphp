@@ -142,7 +142,7 @@ class Router{
 			self::$methodPath = self::real_url($methodPath, true);
 		}
 		
-		if($methodPath == FALSE && !in_array(self::get_uri(), ['/', ''])){ //未成功解析到路由且路径不为空
+		if($methodPath == FALSE && !in_array(self::get_uri(), ['/', '', $_SERVER['PHP_SELF']])){ //未成功解析到路由且路径不为空
 			self::notFound();
 		}
 		
@@ -246,6 +246,9 @@ class Router{
 				if(!self::$config['rewrite']){
 					$uri = $_SERVER['REQUEST_URI'];
 					$return = '/' . (strpos($uri, '?') === FALSE ? '' : (strpos($uri, '&') !== FALSE ? substr($uri, strpos($uri, '?') + 1, strpos($uri, '&') - (strpos($uri, '?') + 1)) : substr($uri, strpos($uri, '?') + 1)));
+					if(strpos($return, '=') !== FALSE){
+						$return = '';
+					}
 				}else{
 					$return = explode('?', $_SERVER['REQUEST_URI'])[0];
 				}
@@ -268,7 +271,7 @@ class Router{
 		if(!self::$config['rewrite']){
 			switch(self::$config['router']){
 				case 1:
-					$return = substr($return, -1) == '/' ? substr($return, 0, strlen($return) - 1) : $return;
+					$return = substr($return, -1) == '/' ? substr($return, 0, -1) : $return;
 					$return.= substr($_SERVER['PHP_SELF'], 0, stripos($_SERVER['PHP_SELF'], '.php') + 4);
 					$return.= $url;
 				break;
@@ -282,7 +285,8 @@ class Router{
 				break;
 			}
 		}else{
-			$return = $url;
+			$return = substr($return, -1) == '/' ? substr($return, 0, -1) : $return;
+			$return = $return . $url;
 		}
 		
 		return $return . ($args ? (strpos($return, '?') !== FALSE ? '&' . $args : '?' . $args) : '');

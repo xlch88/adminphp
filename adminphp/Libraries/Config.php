@@ -137,6 +137,7 @@ class Config {
 			default:
 				$result = "<?php\r\nreturn ";
 				$result.= var_export($value, true);
+				$result.= ';';
 			break;
 		}
 		

@@ -90,6 +90,12 @@ class AdminPHP{
 	 */
 	static public function init($config){
 		global $a, $c, $m;
+		// Load Functions File
+		include(adminphp . 'Functions/functions.helper.php');
+		include(adminphp . 'Functions/functions.safe.php');
+		include(adminphp . 'Functions/functions.adminphp.php');
+		PerformanceStatistics::log('AdmionPHP:init_functions');
+		
 		self::$config = array_merge(self::$config, $config);
 		
 		// Performance Statistics
@@ -98,6 +104,7 @@ class AdminPHP{
 		
 		// Set timezone
 		date_default_timezone_set(self::$config['timezone']);
+		header('PHP-Framework: AdminPHP V' . adminphp_version_name . ' Build ' . adminphp_version);
 
 		// AutoLoader
 		include(adminphp . 'AutoLoad.php');
@@ -114,12 +121,6 @@ class AdminPHP{
 		if(is_file(appPath . 'functions.php'))
 			include(appPath . 'functions.php');
 		
-		// Load Functions File
-		include(adminphp . 'Functions/functions.helper.php');
-		include(adminphp . 'Functions/functions.safe.php');
-		include(adminphp . 'Functions/functions.adminphp.php');
-		PerformanceStatistics::log('AdmionPHP:init_functions');
-
 		// Include APP File
 		include(appPath . 'app.php');
 		PerformanceStatistics::log('AdmionPHP:include_app_file');
@@ -154,6 +155,7 @@ class AdminPHP{
 			);
 		}
 		
+		Hook::do('app_define_template');
 		self::define('templatePath');
 		
 		// Run App

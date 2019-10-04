@@ -14,7 +14,7 @@
 define('adminphp', dirname(__FILE__) . DIRECTORY_SEPARATOR);
 
 define('adminphp_version',		2002);
-define('adminphp_version_name', '2.0');
+define('adminphp_version_name', '2.0Beta');
 
 if(version_compare(PHP_VERSION,'5.5.0', '<')){
 	include(adminphp . 'Template/oldVersion.php');

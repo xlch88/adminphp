@@ -119,7 +119,7 @@ class Methods {
 			return '<?php if(empty' . $match[3] . '): ?>';
 		};
 		
-		$methods['endunless'] = $methods['endempty'] = $methods['endisset'] = function($match){
+		$methods['endunless'] = $methods['endempty'] = $methods['endisset'] = $methods['endtrue'] = function($match){
 			return '<?php endif; ?>';
 		};
 		
@@ -147,6 +147,12 @@ class Methods {
 		
 		$methods['formhash'] = function($match){
 			return '<input type="hidden" name="' . AntiCSRF::$argName . '" value="<?=\AdminPHP\AntiCSRF::get(); ?>" />';
+		};
+		
+		$methods['true'] = function($match){
+			if(!isset($match[4]) || $match[4] == '') return;
+			
+			return '<?php if(isset' . $match[3] . ' && ' . $match[3] . '): ?>';
 		};
 		
 		return $methods;

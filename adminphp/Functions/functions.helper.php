@@ -89,3 +89,21 @@ function returnCallback($arr, $key = '') {
     $key = safe_html($key ? : i('callback'));
     die($key . '(' . json_encode($arr, JSON_PRETTY_PRINT + JSON_UNESCAPED_UNICODE) . ')');
 }
+/**
+ * 适用于二维数组的array_merge
+ * 主要用来合并默认配置项
+ *
+ * @param array $arr1 缺省值组
+ * @param array $arr2 原数组
+ */
+function array_merge2($arr1, $arr2){
+	foreach($arr2 as $index => $value){
+		if(is_array($value)){
+			$arr1[$index] = isset($arr1[$index]) ? array_merge2($arr1[$index], $value) : $value;
+		}else{
+			$arr1[$index] = $value;
+		}
+	}
+	
+	return $arr1;
+}

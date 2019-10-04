@@ -137,7 +137,7 @@ function i($i, $method = 'all', $filter = ''){
 				
 				case 'bool':
 				case 'boolean':
-					$return = in_array(strtolower($return), ['1', 'true', 't', 'yes', 'y', '√']);
+					$return = in_array(strtolower($return), ['1', 'true', 't', 'yes', 'y', '√', 'on']);
 				break;
 			}
 		}
