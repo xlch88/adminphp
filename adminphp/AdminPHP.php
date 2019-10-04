@@ -181,14 +181,14 @@ class AdminPHP{
 		}
 		switch($var){
 			case 'appPath':
-				if(!realpath(self::$config['path']['app'])){
+				if(!realpath(self::$config['path']['app']) || !is_dir(self::$config['path']['app'])){
 					throw new InitException(0, self::$config['path']['app']);
 				}
 				defined('appPath') or define('appPath', self::$config['path']['app'] = realpath(self::$config['path']['app']) . DIRECTORY_SEPARATOR);
 			break;
 			
 			case 'templatePath':
-				if(self::$config['path']['template'] != '' && !realpath(self::$config['path']['template'])){
+				if(self::$config['path']['template'] != '' && (!realpath(self::$config['path']['template']) || !is_dir(self::$config['path']['template']))){
 					throw new InitException(1, self::$config['path']['template']);
 				}
 				defined('templatePath') or define('templatePath', self::$config['path']['template'] = realpath(self::$config['path']['template']) . DIRECTORY_SEPARATOR);

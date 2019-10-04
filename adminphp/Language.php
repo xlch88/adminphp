@@ -76,7 +76,7 @@ class Language {
 	 * @return boolean
 	 */
 	public static function addPath($path){
-		if(realpath($path)){
+		if(realpath($path) && is_dir($path)){
 			self::$path[] = realpath($path) . DIRECTORY_SEPARATOR;
 			return true;
 		}

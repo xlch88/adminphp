@@ -121,7 +121,7 @@ class AutoLoad{
 		
 		$file = '';
 		foreach($files as $file){
-			if($file = realpath($file)){
+			if($file = realpath($file) && is_file($file)){
 				if(!in_array($file, self::$included)){
 					if($return){
 						return $file;

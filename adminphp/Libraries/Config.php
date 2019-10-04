@@ -31,7 +31,7 @@ class Config {
 	 * @return void
 	 */
 	public function __construct($path, $prefix = '', $subfix = '.php', $id = 'app'){
-		if(!realpath($path)){
+		if(!realpath($path) || !is_dir($path)){
 			throw new ConfigException(0, $this);
 		}
 		
