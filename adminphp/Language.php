@@ -50,7 +50,7 @@ class Language {
 			self::$languages[] = self::format($_COOKIE['adminphp_language']);
 		}
 		
-		$accept = explode(',', $_SERVER['HTTP_ACCEPT_LANGUAGE']);
+		$accept = isset($_SERVER['HTTP_ACCEPT_LANGUAGE']) ? explode(',', $_SERVER['HTTP_ACCEPT_LANGUAGE']) : [];
 		
 		foreach($accept as $index => $value){
 			self::$languages[] = self::format(substr($value, 0, strpos($value, ';') ?: strlen($value)));

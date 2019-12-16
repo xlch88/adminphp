@@ -23,10 +23,12 @@ class File {
 			'file_subfix'	=> '.cache.php'
 		], $config);
 		
-		if(!realpath($config['path']) || !is_dir($config['path'])){
+		if(!realpath($config['path']) || !file_exists($config['path'])){
 			if(!mkdir($config['path'], 0777, true)){
 				throw new \InvalidArgumentException(l('路径是无效的，且无法被创建！'));
 			}
+			
+			file_put_contents(realpath($config['path']) . '/.gitignore', '*');
 		}
 		
 		$this->path = realpath($config['path']) . DIRECTORY_SEPARATOR;
@@ -55,7 +57,7 @@ class File {
 	public function set($key, $value, $expiry = false){
 		$data = '<?php die(); ?>' . json_encode([
 			'data'		=> serialize($value),
-			'expiry'	=> $expiry
+			'expiry'	=> $expiry ? time() + $expiry : false
 		]);
 		
 		$file = $this->path . $key . $this->subfix;

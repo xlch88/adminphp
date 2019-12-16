@@ -357,7 +357,7 @@ class Router{
 		if($getRoute){
 			return self::mkurl($router['route'], $router['args']);
 		}else{
-			return self::getUrl(false) . substr($_SERVER['PHP_SELF'], 1) . '?' . http_build_query(self::real_url($route, true)) . ($args ? '&' . $args : '');
+			return self::getUrl(false) . substr($_SERVER['SCRIPT_NAME'], 1) . '?' . http_build_query(self::real_url($route, true)) . ($args ? '&' . $args : '');
 		}
 	}
 

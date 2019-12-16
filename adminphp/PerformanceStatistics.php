@@ -75,10 +75,19 @@ class PerformanceStatistics{
 		
 		echo "\r\n";
 		
-		echo 'Language Key Count:' . count(Language::$lang) . "\r\n";
+		echo 'Language Key Count: ' . count(Language::$lang) . "\r\n";
 		echo 'Language Files: ' . count(Language::$loadFiles) . "\r\n";
 		foreach(Language::$loadFiles as $index => $file){
 			echo '#' . $index . ' - ' . str_replace(root, '', $file) . "\r\n";
+		}
+		
+		echo 'Cache write: ' . count(Cache::$writeList) . "\r\n";
+		foreach(Cache::$writeList as $index => $key){
+			echo '#' . $index . ' - ' . $key . "\r\n";
+		}
+		echo 'Cache read : ' . count(Cache::$readList) . "\r\n";
+		foreach(Cache::$readList as $index => $key){
+			echo '#' . $index . ' - ' . $key . "\r\n";
 		}
 		
 		echo "\r\n" . '-->';

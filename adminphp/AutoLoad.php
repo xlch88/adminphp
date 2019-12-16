@@ -121,7 +121,7 @@ class AutoLoad{
 		
 		$file = '';
 		foreach($files as $file){
-			if($file = realpath($file) && is_file($file)){
+			if(($file = realpath($file)) && is_file($file)){
 				if(!in_array($file, self::$included)){
 					if($return){
 						return $file;
@@ -138,7 +138,7 @@ class AutoLoad{
 			return false;
 		}
 		
-		if(!class_exists($className, false) && $exception){
+		if((!class_exists($className, false) && !trait_exists($className, false) && !interface_exists($className, false)) && $exception){
 			if($file){
 				throw new AutoLoadException(1, $className, $files, $file);
 			}else{

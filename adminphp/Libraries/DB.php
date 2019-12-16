@@ -251,9 +251,9 @@ class DB {
 			if($isThrow){
 				throw new DBException(1, $this, [
 					'sql'		=> $sql,
-					'args'		=> $args,
-					'errorCode'	=> $ex->errorCode(),
-					'errorInfo'	=> $ex->errorInfo()
+					'args'		=> $sql,
+					'errorCode'	=> $ex->getMessage(),
+					'errorInfo'	=> $ex->getCode()
 				]);
 			}
 			

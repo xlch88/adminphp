@@ -67,7 +67,7 @@ class Methods {
 		$methods['case'] = function($match){
 			if(!isset($match[4]) || $match[4] == '') return;
 			
-			return 'case ' . $match[4] . ': ?>';
+			return 'case ' . $match[3] . ': ?>';
 		};
 		
 		$methods['default'] = function($match){

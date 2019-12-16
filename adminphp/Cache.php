@@ -18,6 +18,8 @@ use AdminPHP\Engine\Cache\File as CacheEngine_File;
 class Cache {
 	static private $engine = 'file';
 	static private $engineClass = null;
+	static public  $readList = [];
+	static public  $writeList = [];
 	
 	static public function init($config = []){
 		switch($config['engine']){
@@ -42,6 +44,18 @@ class Cache {
 	}
 	
 	static public function __callStatic($name, $arguments) {
-		return call_user_func_array([self::$engineClass, $name], $arguments);
+		if(self::$engineClass == null){
+			return false;
+		}
+		
+		$result = call_user_func_array([self::$engineClass, $name], $arguments);
+		
+		if($name == 'get' && $result !== false){
+			self::$readList[] = $arguments[0];
+		}elseif($name == 'set' && $result !== false){
+			self::$writeList[] = $arguments[0];
+		}
+		
+		return $result;
 	}
 }
