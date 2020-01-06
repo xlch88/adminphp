@@ -16,15 +16,15 @@ define('adminphp', dirname(__FILE__) . DIRECTORY_SEPARATOR);
 define('adminphp_version',		2002);
 define('adminphp_version_name', '2.0Beta');
 
-if(version_compare(PHP_VERSION,'5.5.0', '<')){
+if(version_compare(PHP_VERSION,'5.6.0', '<')){
 	include(adminphp . 'Template/oldVersion.php');
 	die();
 }
 
 /* 性能统计 START */
-include(adminphp . 'PerformanceStatistics.php');
-\AdminPHP\PerformanceStatistics::begin();
-\AdminPHP\PerformanceStatistics::log('START');
+include(adminphp . 'Module' . DIRECTORY_SEPARATOR . 'PerformanceStatistics.php');
+\AdminPHP\Module\PerformanceStatistics::begin();
+\AdminPHP\Module\PerformanceStatistics::log('START');
 
 /* (<ゝω·)☆ キラッ~! Kira~! */
 include(adminphp . 'AdminPHP.php');

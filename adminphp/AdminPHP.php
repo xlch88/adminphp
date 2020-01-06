@@ -16,10 +16,12 @@ namespace AdminPHP;
 use AdminPHP\Hook;
 use AdminPHP\View;
 use AdminPHP\ErrorManager;
-use AdminPHP\PerformanceStatistics;
-use AdminPHP\Controller;
-use AdminPHP\Language;
-use AdminPHP\AntiCSRF;
+use AdminPHP\InitController;
+use AdminPHP\Module\Language;
+use AdminPHP\Module\AntiCSRF;
+use AdminPHP\Module\Cache;
+use AdminPHP\Module\PerformanceStatistics;
+use AdminPHP\Module\ReturnData;
 use AdminPHP\Exception\InitException;
 
 class AdminPHP{
@@ -90,6 +92,7 @@ class AdminPHP{
 	 */
 	static public function init($config){
 		global $a, $c, $m;
+		
 		// Load Functions File
 		include(adminphp . 'Functions/functions.helper.php');
 		include(adminphp . 'Functions/functions.safe.php');
@@ -163,11 +166,11 @@ class AdminPHP{
 		PerformanceStatistics::log('AdmionPHP:app_init');
 		
 		// Run Controller
-		Controller::init();
+		InitController::init();
 		
 		/* 性能统计 END */
-		\AdminPHP\PerformanceStatistics::log('END');
-		\AdminPHP\PerformanceStatistics::show();
+		PerformanceStatistics::log('END');
+		PerformanceStatistics::show();
 	}
 	
 	/**

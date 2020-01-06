@@ -11,7 +11,7 @@
  | LICENSE : WTFPL http://www.wtfpl.net/about
  * ----------------------------------------------- */
 
-namespace AdminPHP;
+namespace AdminPHP\Module;
 
 class Language {
 	static private $cookieName	= '';

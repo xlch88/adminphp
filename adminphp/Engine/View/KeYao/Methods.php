@@ -13,7 +13,7 @@
 
 namespace AdminPHP\Engine\View\KeYao;
 
-use AdminPHP\AntiCSRF;
+use AdminPHP\Module\AntiCSRF;
 
 class Methods {
 	function get(){
@@ -146,7 +146,7 @@ class Methods {
 		};
 		
 		$methods['formhash'] = function($match){
-			return '<input type="hidden" name="' . AntiCSRF::$argName . '" value="<?=\AdminPHP\AntiCSRF::get(); ?>" />';
+			return '<input type="hidden" name="' . AntiCSRF::$argName . '" value="<?=\AdminPHP\Module\AntiCSRF::get(); ?>" />';
 		};
 		
 		$methods['true'] = function($match){

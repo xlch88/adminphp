@@ -1,13 +1,10 @@
-<!-- 
-<?php print_r($errorInfo); ?>
--->
 <link href="https://cdn.bootcss.com/highlight.js/9.15.9/styles/solarized-light.min.css" rel="stylesheet">
-<div class="info exception">
-	<div class="img img_exception"></div>
-	<div class="errorInfo">
+<div class="adminphp_info adminphp_exception">
+	<div class="adminphp_info_img adminphp_info_img_exception"></div>
+	<div class="adminphp_exception_errorInfo">
 		<h2><?=l('异常捕获 _(:з」∠)_'); ?></h2>
 		<div class="table-responsive">
-			<table class="errorText">
+			<table class="adminphp_exception_errorInfo_errorText">
 				<tr>
 					<td><?=l('页面地址：'); ?></td>
 					<td><?=safe_html($url); ?></td>
@@ -37,12 +34,12 @@
 		<?php } ?>
 	</div>
 	<?php if($debug){ ?>
-	<div class="vars">
+	<div class="adminphp_exception_vars">
 		<h2><?=l('数据输出 (〜￣△￣)〜'); ?></h2>
 
 		<?php foreach($exceptionVars as $key => $value){ ?>
 			<?php if($value['type'] == 1){ ?>
-			<table class="varTable" border="1">
+			<table border="1">
 				<tr>
 					<td colspan="2"><?=$key; ?> <span>array(<?=count($value['value'])?>)</span></td>
 				</tr>
@@ -54,7 +51,7 @@
 				<?php } ?>
 			</table>
 			<?php }else{ ?>
-			<table class="varTable" border="1">
+			<table border="1">
 				<tr>
 					<td><?=$key; ?></td>
 					<td title="<?=safe_attr($value['value'][1]); ?>"><?=$value['value'][0]; ?></td>
@@ -63,7 +60,7 @@
 			<?php } ?>
 		<?php } ?>
 	</div>
-	<div class="trace">
+	<div class="adminphp_exception_trace">
 		<h2><?=l('来源追踪 ╮(╯﹏╰）╭'); ?> <span class="allOpen"><?=l('[全部打开]'); ?></span></h2>
 		<?php foreach($trace as $row){ ?>
 		<div class="item">
@@ -87,11 +84,11 @@
 		</div>
 		<?php } ?>
 	</div>
-	<?php }else{ ?>
-	<div class="adminInfo">
-		<h2><?=l('管理员信息'); ?> <span class="allOpen"><?=l('请将错误信息发送给管理员'); ?></span></h2>
-		<div class="table-responsive">
-			<table class="errorText">
+	<?php } ?>
+	<div class="adminphp_exception_adminInfo">
+		<h2><?=l('管理员信息'); ?> <span><?=l('请将错误信息发送给管理员'); ?></span></h2>
+		<div class="ta ble-responsive">
+			<table class="adminphp_exception_errorInfo_errorText">
 				<thead>
 				<?php foreach($adminInfo as $key => $value){ ?>
 				<tr>
@@ -102,13 +99,7 @@
 				</thead>
 			</table>
 		</div>
-		<?php if($debug){ ?>
-		<div class="table-responsive">
-			<pre><code><?=str_replace(["\t", '[redline]', '[/redline]'], ['    ', '<span class="redLine">', '</span>'], safe_html($fileText)); ?></code></pre>
-		</div>
-		<?php } ?>
 	</div>
-	<?php } ?>
 </div>
 <!-- 没有jq真是太难受了 -->
 <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
@@ -117,22 +108,22 @@
 $(function(){
 	hljs.initHighlightingOnLoad();
 	
-	$('.trace>.item>.filepath>p:nth-child(1)').click(function(){
+	$('.adminphp_exception_trace>.item>.filepath>p:nth-child(1)').click(function(){
 		$('.table-responsive', $(this).parent().parent()).toggle();
 	});
 	
 	$('.allOpen').click(function(){
 		if($(this).html() == '<?=l("[全部打开]"); ?>'){
-			$('.trace>.item .table-responsive').show();
+			$('.adminphp_exception_trace>.item .table-responsive').show();
 			$(this).html('<?=l("[全部关闭]"); ?>');
 		}else{
-			$('.trace>.item .table-responsive').hide();
+			$('.adminphp_exception_trace>.item .table-responsive').hide();
 			$(this).html('<?=l("[全部打开]"); ?>');
 		}
 	});
 	
-	$('.vars table tr.sub').hide();
-	$('.vars td[colspan=2]').click(function(){
+	$('.adminphp_exception_vars table tr.sub').hide();
+	$('.adminphp_exception_vars td[colspan=2]').click(function(){
 		$('.sub', $(this).parent().parent()).toggle();
 	});
 	

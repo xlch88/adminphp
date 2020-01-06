@@ -15,6 +15,7 @@ namespace AdminPHP;
 
 use AdminPHP\Exception\ErrorException;
 use AdminPHP\Router;
+use AdminPHP\Module\PerformanceStatistics;
 
 class ErrorManager{
 	static private $debug = false;
@@ -81,7 +82,7 @@ class ErrorManager{
 	 * @return void
 	 */
 	static public function exception($ex){
-		\AdminPHP\PerformanceStatistics::log('AdminPHP:error_manager');
+		PerformanceStatistics::log('AdminPHP:error_manager');
 		
 		$info = [
 			'message'		=> $ex->getMessage(),

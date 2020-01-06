@@ -93,14 +93,16 @@ class Layout {
 	}
 	
 	static public function setSection($name, $func){
-		self::$sections[$name] = $func;
+		self::$sections[$name][] = $func;
 	}
 	
 	static public function getSection($name, $args){
 		unset($args['__file']);
 		
 		if(isset(self::$sections[$name])){
-			self::$sections[$name]($args);
+			foreach(self::$sections[$name] as $index => $func){
+				$func($args);
+			}
 		}
 	}
 }

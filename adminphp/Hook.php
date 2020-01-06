@@ -13,7 +13,7 @@
 
 namespace AdminPHP;
 
-use AdminPHP\PerformanceStatistics;
+use AdminPHP\Module\PerformanceStatistics;
 
 class Hook{
 	private static $hookList = [];

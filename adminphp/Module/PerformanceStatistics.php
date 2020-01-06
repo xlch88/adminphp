@@ -11,7 +11,9 @@
  | LICENSE : WTFPL http://www.wtfpl.net/about
  * ----------------------------------------------- */
 
-namespace AdminPHP;
+namespace AdminPHP\Module;
+
+use AdminPHP\AutoLoad;
 
 class PerformanceStatistics{
 	public static $show = true;

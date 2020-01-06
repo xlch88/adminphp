@@ -11,7 +11,7 @@
  | LICENSE : WTFPL http://www.wtfpl.net/about
  * ----------------------------------------------- */
 
-use AdminPHP\PerformanceStatistics;
+use AdminPHP\Module\PerformanceStatistics;
 use AdminPHP\Exception\DBException;
 
 class DB {

@@ -15,7 +15,7 @@ namespace AdminPHP;
 
 use AdminPHP\AutoLoad;
 
-class Controller{
+class InitController{
 	/**
 	 * 初始化控制器
 	 * 
@@ -59,7 +59,49 @@ class Controller{
 			$controller->init();
 		
 		//执行控制器方法
-		$controller->$m();
+		$return = $controller->$m();
+		
+		self::returnHandle($return);
+	}
+	
+	static private function returnHandle($return){
+		if(is_null($return)){
+			return;
+		}
+		
+		if(is_object($return) && get_class($return) === 'AdminPHP\\Model\\ControllerReturn'){
+			switch($return->type){
+				case 'status_success':
+					call_user_func_array('returnSuccess', $return->data);
+				break;
+				case 'status_error':
+					call_user_func_array('returnError', $return->data);
+				break;
+				case 'status_info':
+					call_user_func_array('returnInfo', $return->data);
+				break;
+				
+				case 'data_json':
+					call_user_func_array('returnJson', $return->data);
+				break;
+				case 'data_jsonp':
+					call_user_func_array('returnCallback', $return->data);
+				break;
+				case 'data_xml':
+					call_user_func_array('returnXML', $return->data);
+				break;
+				
+				default:
+					throw new \InvalidArgumentException(l('ControllerReturn类型无法被处理!'));
+				break;
+			}
+		}elseif(is_array($return)){
+			call_user_func_array('returnData', [ $return, 'info' ]);
+		}elseif(is_bool($return) === true){
+			die($return ? 'true' : 'false');
+		}else{
+			die((string)$return);
+		}
 	}
 	
 	/**

@@ -105,34 +105,20 @@ if(!function_exists('randString')){
 	/**
 	 * 获取指定长度的0-9a-zA-Z随机字符
 	 *
-	 * @param int $length 长度 
+	 * @param int  $length     长度 
+	 * @param bool $verifyCode 验证码模式，删除了部分不好区分的字符，如1iIl o0O
 	 * @return string
 	 */
-	function randString($length) {
-		$str = null;
-		$strPol = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-		$max = strlen($strPol) - 1;
-		for ($i = 0; $i < $length; $i++) {
-			$str.= $strPol[rand(0, $max) ];
+	function randString($length, $verifyCode = false) {
+		if($verifyCode){
+			$strPol = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+		}else{
+			$strPol = '23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz';
 		}
-		return $str;
-	}
-}
-
-if(!function_exists('randString2')){
-	/**
-	 * 获取指定长度的0-9a-zA-Z随机字符
-	 * 用于验证码，删除了部分不好区分的字符，如1iIl o0O
-	 *
-	 * @param int $length 长度 
-	 * @return string
-	 */
-	function randString2($length) {
-		$str = null;
-		$strPol = '23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz';
-		$max = strlen($strPol) - 1;
+		
+		$str = '';
 		for ($i = 0; $i < $length; $i++) {
-			$str.= $strPol[rand(0, $max)];
+			$str.= $strPol[rand(0, strlen($strPol) - 1) ];
 		}
 		return $str;
 	}
@@ -146,6 +132,8 @@ if(!function_exists('returnJson')){
 	 * @return null
 	 */
 	function returnJson($arr) {
+		header('Content-Type: application/json; charset=UTF-8');
+		
 		die(json_encode($arr, JSON_PRETTY_PRINT + JSON_UNESCAPED_UNICODE));
 	}
 }
@@ -160,8 +148,25 @@ if(!function_exists('returnCallback')){
 	 * @return null
 	 */
 	function returnCallback($arr, $key = '') {
+		header('Content-Type: application/javascript; charset=UTF-8');
+		
 		$key = safe_html($key ? : i('callback'));
 		die($key . '(' . json_encode($arr, JSON_PRETTY_PRINT + JSON_UNESCAPED_UNICODE) . ')');
+	}
+}
+
+if(!function_exists('returnXML')){
+	/**
+	 * 输出xml并结束程序
+	 *
+	 * @param array            $arr  数组
+	 * @param string           $root 根
+	 * @return null
+	 */
+	function returnXML($arr, $root = null) {
+		header('Content-Type: application/xml; charset=UTF-8');
+		
+		die(arr2xml($arr, $root));
 	}
 }
 
@@ -187,9 +192,33 @@ if(!function_exists('array_merge2')){
 }
 
 if(!function_exists('format_bytes')){
-	function formatBytes($size, $delimiter = '') {
+	function format_bytes($size, $delimiter = '') {
 		$units = array('B', 'KB', 'MB', 'GB', 'TB', 'PB');
 		for ($i = 0; $size >= 1024 && $i < 5; $i++) $size /= 1024;
 		return round($size, 2) . $delimiter . $units[$i];
+	}
+}
+
+if(!function_exists('arr2xml')){
+	/**
+	 * 数组转换为xml
+	 * 支持二维数组
+	 * @param array            $arr  数组
+	 * @param string           $root 根
+	 * @param SimpleXMLElement $xml  SimpleXMLElement
+	 * @return string
+	 */
+	function arr2xml($arr, $root = null, $xml = null) {
+		if ($xml === null) {
+			$xml = new \SimpleXMLElement($root !== null ? $root : '<root/>');
+		}
+		foreach ($arr as $key => $value) {
+			if(is_array($value)){
+				arr2xml($value, $key, $xml->addChild($key));
+			}else{
+				$xml->addChild($key, $value);
+			}
+		}
+		return $xml->asXML();
 	}
 }
