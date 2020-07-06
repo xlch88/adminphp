@@ -49,11 +49,27 @@ class DBException extends Exception{
 				$this->key			= $arg2['key'];
 				$this->value		= $arg2['value'];
 			break;
+			
+			case 4: //arr2sql错误
+				$this->message		= l('arr2sql转换错误: 数组成员个数应该为两个("a", "b")或三个("a", ">", "b")。');
+				$this->arr			= $arg2['arr'];
+				$this->key			= $arg2['key'];
+				$this->value		= $arg2['value'];
+			break;
+			
+			case 5: //arr2sql错误
+				$this->message		= l('arr2sql转换错误: 传入了无法处理的值。');
+				$this->arr			= $arg2['arr'];
+				$this->key			= $arg2['key'];
+				$this->value		= $arg2['value'];
+			break;
 		}
 		
-		$this->dbConfig = $db->config;
-		
-		$this->dbConfig['username'] = '**********';
-		$this->dbConfig['password'] = '**********';
+		if(!is_null($db)){
+			$this->dbConfig = $db->config;
+			
+			$this->dbConfig['username'] = '**********';
+			$this->dbConfig['password'] = '**********';
+		}
     }
 }

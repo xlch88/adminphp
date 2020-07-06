@@ -16,9 +16,19 @@ define('adminphp', dirname(__FILE__) . DIRECTORY_SEPARATOR);
 define('adminphp_version',		2002);
 define('adminphp_version_name', '2.0Beta');
 
+header("Content-type: text/html; charset=utf-8");
+
 if(version_compare(PHP_VERSION,'5.6.0', '<')){
 	include(adminphp . 'Template/oldVersion.php');
 	die();
+}
+
+if(!realpath(appPath) || !is_dir(appPath)){
+	die('boot failed. app path not found.');
+}
+
+if(!file_exists($configFile = appPath . 'init.php')){
+	die('init file not found. (appPath/init.php)');
 }
 
 /* 性能统计 START */
@@ -28,3 +38,6 @@ include(adminphp . 'Module' . DIRECTORY_SEPARATOR . 'PerformanceStatistics.php')
 
 /* (<ゝω·)☆ キラッ~! Kira~! */
 include(adminphp . 'AdminPHP.php');
+
+// 启动 (<ゝω·)☆
+\AdminPHP\AdminPHP::init(include($configFile));

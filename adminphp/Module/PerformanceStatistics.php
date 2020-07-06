@@ -13,7 +13,9 @@
 
 namespace AdminPHP\Module;
 
+use AdminPHP\AdminPHP;
 use AdminPHP\AutoLoad;
+use AdminPHP\Module\DB;
 
 class PerformanceStatistics{
 	public static $show = true;
@@ -32,7 +34,7 @@ class PerformanceStatistics{
 	 */
 	public static function begin(){
 		self::$begin = [
-			'time'		=> self::fn(),
+			'time'		=> self::getMicrotime(),
 			'memory'	=> memory_get_usage()
 		];
 	}
@@ -48,7 +50,7 @@ class PerformanceStatistics{
 		
 		self::$log[] = [
 			'name'		=> $name,
-			'time'		=> self::fn() - self::$begin['time'],
+			'time'		=> self::getMicrotime() - self::$begin['time'],
 			'memory'	=> (memory_get_usage() - self::$begin['memory']) / 1024,
 			'sql'		=> self::$SQLCount
 		];
@@ -83,6 +85,8 @@ class PerformanceStatistics{
 			echo '#' . $index . ' - ' . str_replace(root, '', $file) . "\r\n";
 		}
 		
+		echo "\r\n";
+		
 		echo 'Cache write: ' . count(Cache::$writeList) . "\r\n";
 		foreach(Cache::$writeList as $index => $key){
 			echo '#' . $index . ' - ' . $key . "\r\n";
@@ -90,6 +94,23 @@ class PerformanceStatistics{
 		echo 'Cache read : ' . count(Cache::$readList) . "\r\n";
 		foreach(Cache::$readList as $index => $key){
 			echo '#' . $index . ' - ' . $key . "\r\n";
+		}
+		
+		if(AdminPHP::$config['debug']){
+			echo "\r\n";
+			echo 'Database : ' . count(DB::$dbList) . "\r\n";
+			
+			foreach(array_keys(DB::$dbList) as $index => $key){
+				$time = array_sum(array_column(DB::$dbList[$key]->log, 'time'));
+				echo '  dsn = ' . DB::$dbList[$key]->config['dsn'] . "\r\n";
+				echo '  Name: ' . $key . ' | Query: ' . count(DB::$dbList[$key]->log) . ' | time: ' . round($time, 4) . 'ms | SQL => ' . " \r\n";
+				
+				foreach(DB::$dbList[$key]->log as $index2 => $row){
+					echo '    - ' . 
+					$row['sql']
+					. ' (time: ' . $row['time'] . 'ms)' . "\r\n";
+				}
+			}
 		}
 		
 		echo "\r\n" . '-->';
@@ -100,7 +121,7 @@ class PerformanceStatistics{
 	 * 
 	 * @return loog
 	 */
-	private static function fn(){
+	public static function getMicrotime(){
 		list($a, $b) = explode(' ',microtime()); //获取并分割当前时间戳和微妙数，赋值给变量
 		return $a + $b;
 	}

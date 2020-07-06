@@ -81,7 +81,7 @@ class KeYao {
 		$_file = $file . $this->config['file_subfix'];
 		
 		Hook::do('template_file', ['templateFilePath' => &$_templateFilePath, 'templateFile' => &$_file, 'isRoot' => $isRoot]);
-			
+		
 		if(is_file($_templateFilePath . $_file)){ //不处理
 			return $_templateFilePath . $_file;
 		}
@@ -128,7 +128,8 @@ class KeYao {
 		
 		$result .= $this->footer;
 		$result = str_replace(['?><?php', '?> <?php'], '', $result);
-		
+		$result = preg_replace('/\?>([\s]*)<\?php/', '$1', $result);
+
 		return $result;
 	}
 	

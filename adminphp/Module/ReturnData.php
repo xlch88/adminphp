@@ -1,6 +1,8 @@
 <?php
 namespace AdminPHP\Module;
 
+use AdminPHP\Router;
+
 class ReturnData{
 	static $accept = '';
 	static $jsonpCallback = 'callback';
@@ -61,6 +63,15 @@ class ReturnData{
 			self::init();
 		}
 		
+		if(is_array($msg) || is_array($title)){
+			$args = array_merge([
+				'msg'		=> is_array($msg) ? '' : $msg,
+				'title'		=> is_array($title) ? '' : $title,
+			], is_array($msg) ? $msg : $title);
+			
+			extract($args);
+		}
+		
 		if($onlyData){
 			if($onlyData === TRUE && self::$accept == 'normal'){
 				self::$accept = 'json';
@@ -108,9 +119,9 @@ class ReturnData{
 		
 		if($wait === null){
 			if($status == 'success'){
-				$wait = 3;
+				$wait = 10;
 			}elseif($status == 'error'){
-				$wait = 5;
+				$wait = 15;
 			}else{
 				$wait = 0;
 			}
@@ -169,13 +180,21 @@ class ReturnData{
 					'info'		=> $returnInfo['msg'],
 					'buttons'	=> false,
 					'autoJump'	=> false,
-					'color'		=> '#2488ff',
+					//'color'		=> '#2488ff',
 				];
 				
-				if(isset($returnInfo['data']['more']))
+				if(isset($returnInfo['data']['more'])){
 					$sysinfo['more'] = $returnInfo['data']['more'];
-				if(isset($returnInfo['data']['moreTitle']))
+				}else{
+					$sysinfo['more'] = [];
+				}
+				
+				if(isset($returnInfo['data']['moreTitle'])){
 					$sysinfo['moreTitle'] = $returnInfo['data']['moreTitle'];
+				}else{
+					$sysinfo['moreTitle'] = '';
+				}
+				
 				if(!in_array($returnInfo['code'], [0, 1, 2]))
 					$sysinfo['code'] = $returnInfo['code'];
 				
@@ -309,9 +328,20 @@ class ReturnData{
 		];
 		
 		$defaultValue['color'] = isset($defaultValue['color']) ? $defaultValue['color'] : 
-			isset($defaultValue['colorList'][$defaultValue['type']]) ? $defaultValue['colorList'][$defaultValue['type']] : $defaultValue['colorList']['success'];
+			(isset($defaultValue['colorList'][$defaultValue['type']]) ? $defaultValue['colorList'][$defaultValue['type']] : $defaultValue['colorList']['success']);
 
 		extract($defaultValue);
+		
+		if(Router::$type == 'cmd'){
+			echo_c([
+				'[' . $type . ':' . $code . ']:' . $title,
+				$info,
+				$moreTitle,
+				implode("\r\n", $more)
+			]);
+			die();
+		}
+		
 		set_http_code($statusCode);
 		include(adminphp . 'Template/sysinfo.php');
 		
@@ -340,6 +370,14 @@ class ReturnData{
 		}
 		
 		extract($notice);
+		
+		if(Router::$type == 'cmd'){
+			echo_c([
+				'[notice]:' . $notice
+			]);
+			die();
+		}
+		
 		include(adminphp . 'Template/notice.php');
 		
 		/* 性能统计 END */
@@ -355,6 +393,10 @@ class ReturnData{
 	 * @return void
 	 */
 	static public function go($url, $type = 302){
+		if(\AdminPHP\Router::$type == 'cmd'){
+			return false;
+		}
+		
 		self::set_http_code($type);
 		header('Location: ' . $url);
 		
@@ -367,6 +409,10 @@ class ReturnData{
 	 * @return boolean
 	 */
 	static public function set_http_code($code) {
+		if(\AdminPHP\Router::$type == 'cmd'){
+			return false;
+		}
+		
 		$statusCode = [
 			// Informational 1xx
 			100 => 'Continue',

@@ -13,11 +13,14 @@
 
 namespace AdminPHP\Module;
 
-use AdminPHP\Engine\Cache\File as CacheEngine_File;
+use AdminPHP\Engine\Cache\File		as CacheEngine_File;
+use AdminPHP\Engine\Cache\Memcached	as CacheEngine_Memcached;
+use AdminPHP\Engine\Cache\Memcache	as CacheEngine_Memcache;
+use AdminPHP\Engine\Cache\Yac		as CacheEngine_Yac;
 
 class Cache {
 	static private $engine = 'file';
-	static private $engineClass = null;
+	static public  $engineClass = null;
 	static public  $readList = [];
 	static public  $writeList = [];
 	
@@ -25,6 +28,18 @@ class Cache {
 		switch($config['engine']){
 			case 'file':
 				self::$engineClass = new CacheEngine_File($config);
+			break;
+			
+			case 'memcached':
+				self::$engineClass = new CacheEngine_Memcached($config);
+			break;
+			
+			case 'memcache':
+				self::$engineClass = new CacheEngine_Memcache($config);
+			break;
+			
+			case 'yac':
+				self::$engineClass = new CacheEngine_Yac($config);
 			break;
 			
 			default:

@@ -4,6 +4,9 @@ if(!function_exists('l')){
 		return $text;
 	}
 }
+if(isset($errorInfo) && $errorInfo['debug']){
+	echo "\r\n<!---- Exception ---- \r\n$errorInfo[log]\r\n------ Exception ---->\r\n";
+}
 ?>
 <!-- 破!"' --></a></li></ul></button></div></pre></code>
 <html lang=cn>
@@ -18,15 +21,14 @@ if(!function_exists('l')){
 			<title><?=$title; ?></title>
 			<META http-equiv="content-type" content="text/html; charset=UTF-8">
 			<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
-			<!--<style><?php include(adminphp . 'Template/style.css'); ?></style>-->
-			<link href="/adminphp/Template/style.css" rel="stylesheet" >
+			<style><?php include(adminphp . 'Template/style.css'); ?></style>
+			<!--<link href="/adminphp/Template/style.css" rel="stylesheet" >-->
 		</head>
 		
 		<body class="<?=isset($errorInfo) ? 'adminphp_exception' : ''; ?>">
 			<?php if(!isset($showTips) || $showTips){ ?>
 			<div class="adminphp_info">
-				<div class="adminphp_info_img adminphp_info_img_<?=$type; ?>">
-				</div>
+				<div class="adminphp_info_img adminphp_info_img_<?=$type; ?>"></div>
 				<div class="adminphp_info_code">
 					<p><span><?=$code; ?></span></p>
 					<p style="color:<?=$color?>;"><?=$info; ?></p>
@@ -55,7 +57,7 @@ if(!function_exists('l')){
 			<div class="adminphp_info adminphp_powered">
 				<?=l('%s 秒后将为您自动跳转...', '<span id="sec"></span>'); ?>
 				<span id="adminphp_nowJump"><?=l('[现在跳转]'); ?></span>
-				<span id="adminphp_noJump"><?=l('[雅蠛蝶！等等]'); ?></span>
+				<span id="adminphp_noJump"><?=l('[等等]'); ?></span>
 			</div>
 			<script>
 			url = "<?=$autoJump['url']?>";

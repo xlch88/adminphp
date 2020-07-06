@@ -30,7 +30,7 @@ function safe_html($text){
  * @return string
  */
 function safe_sql($text){
-	return \DB::safe($text);
+	return \AdminPHP\Module\DB::safe($text);
 }
 
 /**  
@@ -90,6 +90,7 @@ function safe_url($text){
  */
 function safe_path($text){
 	return str_replace([
+		'\r', '\n',
 		chr(0),
 		'..\\',
 		'../',

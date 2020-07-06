@@ -13,7 +13,9 @@
 
 namespace AdminPHP;
 
+use AdminPHP\AdminPHP;
 use AdminPHP\AutoLoad;
+use AdminPHP\Hook;
 
 class InitController{
 	/**
@@ -55,12 +57,18 @@ class InitController{
 		$controller = new $controller();
 		
 		//执行初始化方法
-		if(method_exists($controller, 'init') && (new \ReflectionMethod($controller, 'init'))->isPublic())
-			$controller->init();
+		if(method_exists($controller, 'init') && (new \ReflectionMethod($controller, 'init'))->isPublic()){
+			if(!is_null($return = $controller->init())){
+				self::returnHandle($return);
+				return;
+			}
+		}
 		
 		//执行控制器方法
 		$return = $controller->$m();
-		
+		Hook::do('controller_return', [
+			'return'	=> &$return
+		]);
 		self::returnHandle($return);
 	}
 	
@@ -111,7 +119,7 @@ class InitController{
 	 * @return void
 	 */
 	static private function error($type = 404){
-		if(Hook::do('controller_error', [ 'type' => $type ])){ //用户自定义处理
+		if(AdminPHP::appEvent('onControllerError', [ $type ]) || Hook::do('controller_error', [ 'type' => $type ])){ //用户自定义处理
 			return;
 		}
 		switch($type){

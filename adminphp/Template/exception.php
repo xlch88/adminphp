@@ -1,4 +1,5 @@
-<link href="https://cdn.bootcss.com/highlight.js/9.15.9/styles/solarized-light.min.css" rel="stylesheet">
+<link href="https://cdn.bootcss.com/SyntaxHighlighter/3.0.83/styles/shCore.min.css" rel="stylesheet">
+<link href="https://cdn.bootcss.com/SyntaxHighlighter/3.0.83/styles/shThemeDefault.min.css" rel="stylesheet">
 <div class="adminphp_info adminphp_exception">
 	<div class="adminphp_info_img adminphp_info_img_exception"></div>
 	<div class="adminphp_exception_errorInfo">
@@ -29,7 +30,7 @@
 		</div>
 		<?php if($debug){ ?>
 		<div class="table-responsive">
-			<pre><code><?=str_replace(["\t", '[redline]', '[/redline]'], ['    ', '<span class="redLine">', '</span>'], safe_html($fileText)); ?></code></pre>
+			<pre class="brush: php; highlight: [<?=$line; ?>]; first-line: <?=($line - 9);?>;"><?=str_replace(['[redline]', '[/redline]'], ['<span class="redLine">', '</span>'], safe_html($fileText)); ?></pre>
 		</div>
 		<?php } ?>
 	</div>
@@ -79,7 +80,7 @@
 				</p>
 			</div>
 			<div class="table-responsive" style="display:none;">
-				<pre><code><?=str_replace(["\t", '[redline]', '[/redline]'], ['    ', '<span class="redLine">', '</span>'], safe_html($row['fileText'])); ?></code></pre>
+				<pre class="brush: php; first-line: <?=((int)$row['line'] - 4);?>; highlight: [<?=$row['line']; ?>];"><?=str_replace(['[redline]', '[/redline]'], ['    ', '<span class="redLine">', '</span>'], safe_html($row['fileText'])); ?></pre>
 			</div>
 		</div>
 		<?php } ?>
@@ -90,6 +91,16 @@
 		<div class="ta ble-responsive">
 			<table class="adminphp_exception_errorInfo_errorText">
 				<thead>
+				<tr>
+					<td>错误发生时间：</td>
+					<td><?=date('Y-m-d H:i:s'); ?></td>
+				</tr>
+				<?php if(!$errorInfo['debug']){ ?>
+				<tr>
+					<td>错误日志ＩＤ：</td>
+					<td><?=$errorInfo['logId']; ?></td>
+				</tr>
+				<?php } ?>
 				<?php foreach($adminInfo as $key => $value){ ?>
 				<tr>
 					<td><?=$key; ?>：</td>
@@ -103,11 +114,13 @@
 </div>
 <!-- 没有jq真是太难受了 -->
 <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
-<script src="https://cdn.bootcss.com/highlight.js/9.15.9/highlight.min.js"></script>
+<script type="text/javascript" src="https://cdn.bootcss.com/SyntaxHighlighter/3.0.83/scripts/shCore.js"></script>
+<script type="text/javascript" src="https://cdn.bootcss.com/SyntaxHighlighter/3.0.83/scripts/shBrushPhp.js"></script>
+<script type="text/javascript">
+	SyntaxHighlighter.all()
+</script>
 <script>
 $(function(){
-	hljs.initHighlightingOnLoad();
-	
 	$('.adminphp_exception_trace>.item>.filepath>p:nth-child(1)').click(function(){
 		$('.table-responsive', $(this).parent().parent()).toggle();
 	});
@@ -130,5 +143,30 @@ $(function(){
 	$('[title]').click(function(){
 		alert($(this).attr('title'));
 	});
+	
+	//小米电视给我爬
+	if(navigator.userAgent.indexOf('MiTV') != -1){
+		setTimeout(function(){
+			location.reload();
+		}, 3000);
+	}
 });
 </script>
+<style>
+.syntaxhighlighter a, .syntaxhighlighter div, .syntaxhighlighter code{
+	font-size:15px!important;
+}
+.syntaxhighlighter .toolbar{
+	display:none;
+}
+.syntaxhighlighter {
+    margin: 0!important;
+	overflow-y: hidden!important;
+}
+.syntaxhighlighter .gutter .line.highlighted {
+    background-color: #93ddff!important;
+}
+.syntaxhighlighter .gutter .line {
+    border-right: 3px solid #93ddff!important;
+}
+</style>

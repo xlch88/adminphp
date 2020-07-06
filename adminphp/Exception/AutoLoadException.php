@@ -24,7 +24,7 @@ class AutoLoadException extends Exception{
 		
 		switch($this->code){
 			case 0:
-				$this->message = l('无法自动加载类。');
+				$this->message = l('无法自动加载类:' . $class);
 				$this->class = $class;
 			break;
 			

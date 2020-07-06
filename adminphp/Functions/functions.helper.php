@@ -15,17 +15,36 @@ if(!function_exists('get_curl')){
 	/**
 	 * 使用curl进行http访问
 	 *
-	 * @param string         $url     地址
+	 * @param mixed          $url     地址
 	 * @param boolean|string $post    post数据,不为false则以post访问并提交数据
 	 * @param boolean|string $referer referer来源
 	 * @param boolean|string $cookie  cookie
 	 * @param boolean        $header  是否在返回的数据中包含头部信息
 	 * @param boolean|string $ua      客户端标识
-	 * @param boolean        $nobody  是否隐藏除header外的数据(只保留头部信息)，配合$header使用
+	 * @param boolean        $justheader  是否隐藏除header外的数据(只保留头部信息)，配合$header使用
 	 * @param int            $timeout 超时时间，单位秒
 	 * @return string
 	 */
-	function get_curl($url, $post = 0, $referer = 0, $cookie = 0, $header = 0, $ua = 0, $justheader = 0, $timeout = 5, $customHeader = false) {
+	function get_curl($url, $post = false, $referer = false, $cookie = false, $header = false, $ua = false, $justheader = false, $timeout = 5, $customHeader = false, $cookieFile = 0, $cookieFileType = 0) {
+		if(is_array($url)){
+			$args = array_merge([
+				'url'			=> '',
+				'post'			=> 0,
+				'referer'		=> 0,
+				'cookie'		=> 0,
+				'header'		=> 0,
+				'ua'			=> 0,
+				'justheader'	=> 0,
+				'timeout'		=> 5,
+				'customHeader'	=> 0,
+				'cookieFile'	=> 0,
+				'cookieFileType'=> 0
+			], $url);
+			
+			extract($args);
+		}
+		
+		
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $url);
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
@@ -61,11 +80,17 @@ if(!function_exists('get_curl')){
 		if ($ua) {
 			curl_setopt($ch, CURLOPT_USERAGENT, $ua);
 		} else {
-			curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36');
+			curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36');
 		}
 		if ($justheader) {
 			curl_setopt($ch, CURLOPT_NOBODY, 1);
 		}
+		
+		if($cookieFile){
+			curl_setopt($ch, CURLOPT_COOKIEFILE, $cookieFile);
+			curl_setopt($ch, CURLOPT_COOKIEJAR, $cookieFile);
+		}
+		
 		curl_setopt($ch, CURLOPT_ENCODING, 'gzip');
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 		curl_setopt($ch, CURLOPT_NOSIGNAL, true);
@@ -134,7 +159,19 @@ if(!function_exists('returnJson')){
 	function returnJson($arr) {
 		header('Content-Type: application/json; charset=UTF-8');
 		
-		die(json_encode($arr, JSON_PRETTY_PRINT + JSON_UNESCAPED_UNICODE));
+		die(json($arr));
+	}
+}
+
+if(!function_exists('json')){
+	/**
+	 * json_encode简化
+	 *
+	 * @param mixed $arr 数组或其他可被json_encode编码的值
+	 * @return null
+	 */
+	function json($arr) {
+		return json_encode($arr, JSON_PRETTY_PRINT + JSON_UNESCAPED_UNICODE);
 	}
 }
 
@@ -166,7 +203,7 @@ if(!function_exists('returnXML')){
 	function returnXML($arr, $root = null) {
 		header('Content-Type: application/xml; charset=UTF-8');
 		
-		die(arr2xml($arr, $root));
+		die(xml($arr, $root));
 	}
 }
 
@@ -180,7 +217,7 @@ if(!function_exists('array_merge2')){
 	 */
 	function array_merge2($arr1, $arr2){
 		foreach($arr2 as $index => $value){
-			if(is_array($value)){
+			if(is_array($value) && array_keys($value) !== range(0, count($value) - 1)){
 				$arr1[$index] = isset($arr1[$index]) ? array_merge2($arr1[$index], $value) : $value;
 			}else{
 				$arr1[$index] = $value;
@@ -199,7 +236,7 @@ if(!function_exists('format_bytes')){
 	}
 }
 
-if(!function_exists('arr2xml')){
+if(!function_exists('xml')){
 	/**
 	 * 数组转换为xml
 	 * 支持二维数组
@@ -208,17 +245,46 @@ if(!function_exists('arr2xml')){
 	 * @param SimpleXMLElement $xml  SimpleXMLElement
 	 * @return string
 	 */
-	function arr2xml($arr, $root = null, $xml = null) {
+	function xml($arr, $root = null, $xml = null) {
 		if ($xml === null) {
 			$xml = new \SimpleXMLElement($root !== null ? $root : '<root/>');
 		}
 		foreach ($arr as $key => $value) {
 			if(is_array($value)){
-				arr2xml($value, $key, $xml->addChild($key));
+				xml($value, $key, $xml->addChild($key));
 			}else{
 				$xml->addChild($key, $value);
 			}
 		}
 		return $xml->asXML();
 	}
+}
+
+
+if(!function_exists('vendor')){
+	function vendor($path){
+		$file = appPath . 'Common/Vendor/' . $path;
+		
+		if(is_file($file . '.php')){
+			include($file . '.php');
+			return true;
+		}elseif(is_file($file . '.class.php')){
+			include($file . '.class.php');
+			return true;
+		}
+		
+		return false;
+	}
+}
+
+function getCenterText($text, $left, $right, $lr = false){
+	$text = explode($left, $text);
+	$text = explode($right, $text[1]);
+	$text = $text[0];
+	
+	if($lr){
+		$text = $left . $text . $right;
+	}
+	
+	return $text;
 }

@@ -34,12 +34,12 @@ if(!function_exists('url')){
 	/**
 	 * 生成地址
 	 * 
-	 * @param string $route 指向位置，“应用名/控制器名/方法名”
-	 * @param string $args  参数
+	 * @param string $route  指向位置，“应用名/控制器名/方法名?参数1=值1&参数2=值2”
+	 * @param string $domain 泛解析时指定的域名
 	 * @return string
 	 */
-	function url($router = '', $args = ''){
-		return \AdminPHP\Router::url($router, $args);
+	function url($route = '', $domain = ''){
+		return \AdminPHP\Module\Router\WebRouter::url($route, $domain);
 	}
 }
 
@@ -82,30 +82,56 @@ if(!function_exists('i')){
 	 * @param mixed  $default 为空时默认值
 	 * @return mixed
 	 */
-	function i($i, $method = 'all', $filter = '', $default = ''){
+	function i($i = null, $method = 'all', $filter = '', $default = ''){
 		$return = null;
 		
-		$method = strtolower("$method");
-		switch($method){
-			case '1':
-			case 'get':
-				$return = isset($_GET[$i]) ? $_GET[$i] : i($i, 'args');
-			break;
+		$method = strtolower($method);
+		if(is_null($i)){ //获取全部参数
+			switch($method){
+				case '1':
+				case 'get':
+					$return = $_GET;
+				break;
 			
-			case 'args':
-				$return = isset(\AdminPHP\Router::$args[$i]) ? \AdminPHP\Router::$args[$i] : $default;
-			break;
-		
-			case '2':
-			case 'post':
-				$return = isset($_POST[$i]) ? $_POST[$i] : $default;
-			break;
-		
-			case '0':
-			case 'all':
-			default:
-				$return = isset($_REQUEST[$i]) ? $_REQUEST[$i] : i($i, 'args');
-			break;
+				case '2':
+				case 'post':
+					$return = $_POST;
+				break;
+			
+				case '0':
+				case 'all':
+				default:
+					$return = array_merge2($_REQUEST, \AdminPHP\Module\Router\WebRouter::$args);
+				break;
+				
+				case 'args':
+					$return = \AdminPHP\Module\Router\WebRouter::$args;
+				break;
+			}
+			
+			return $return;
+		}else{
+			switch($method){
+				case '1':
+				case 'get':
+					$return = isset($_GET[$i]) ? $_GET[$i] : i($i, 'args');
+				break;
+			
+				case '2':
+				case 'post':
+					$return = isset($_POST[$i]) ? $_POST[$i] : $default;
+				break;
+			
+				case '0':
+				case 'all':
+				default:
+					$return = isset($_REQUEST[$i]) ? $_REQUEST[$i] : i($i, 'args');
+				break;
+				
+				case 'args':
+					$return = isset(\AdminPHP\Module\Router\WebRouter::$args[$i]) ? \AdminPHP\Module\Router\WebRouter::$args[$i] : $default;
+				break;
+			}
 		}
 	
 		if(is_array($filter)){
@@ -209,6 +235,15 @@ if(!function_exists('setCache')){
 	}
 }
 
+if(!function_exists('db')){
+	function db($id = 'default'){
+		if(!isset(\AdminPHP\Module\DB::$dbList[$id])){
+			return false;
+		}else{
+			return \AdminPHP\Module\DB::$dbList[$id];
+		}
+	}
+}
 //========================================================================================
 //==== AdminPHP 数据状态输出返回/跳转/系统提示页面 =======================================
 //========================================================================================
@@ -223,7 +258,7 @@ if(!function_exists('notice')){
 	 * @return void
 	 */
 	function notice($notice, $go = '', $time = 0){
-		\AdminPHP\Module\ReturnData::notice($notice, $go = '', $time = 0);
+		\AdminPHP\Module\ReturnData::notice($notice, $go, $time);
 	}
 }
 
@@ -275,7 +310,7 @@ if(!function_exists('returnData')){
 	 * @return void
 	 */
 	function returnData($data = '', $status = 'success', $msg = '', $code = '', $dataType = true){
-		\AdminPHP\Module\returnData::returnData($status, $msg, '', $data, '', '', 0, $dataType);
+		\AdminPHP\Module\ReturnData::returnData($status, $msg, '', $data, '', '', 0, $dataType);
 	}
 }
 
@@ -295,7 +330,7 @@ if(!function_exists('returnSuccess')){
 	 * @return void
 	 */
 	function returnSuccess($msg = '', $title = '', $data = '', $code = '', $url = '', $wait = null, $onlyData = false){
-		\AdminPHP\Module\returnData::returnData('success', $msg, $title, $data, $code, $url, $wait, $onlyData);
+		\AdminPHP\Module\ReturnData::returnData('success', $msg, $title, $data, $code, $url, $wait, $onlyData);
 	}
 }
 
@@ -315,7 +350,7 @@ if(!function_exists('returnError')){
 	 * @return void
 	 */
 	function returnError($msg = '', $title = '', $data = '', $code = '', $url = '', $wait = null, $onlyData = false){
-		\AdminPHP\Module\returnData::returnData('error', $msg, $title, $data, $code, $url, $wait, $onlyData);
+		\AdminPHP\Module\ReturnData::returnData('error', $msg, $title, $data, $code, $url, $wait, $onlyData);
 	}
 }
 
@@ -335,7 +370,7 @@ if(!function_exists('returnInfo')){
 	 * @return void
 	 */
 	function returnInfo($msg = '', $title = '', $data = '', $code = '', $url = '', $wait = null, $onlyData = false){
-		\AdminPHP\Module\returnData::returnData('info', $msg, $title, $data, $code, $url, $wait, $onlyData);
+		\AdminPHP\Module\ReturnData::returnData('info', $msg, $title, $data, $code, $url, $wait, $onlyData);
 	}
 }
 
@@ -356,7 +391,7 @@ if(!function_exists('returnStatus')){
 	 * @return void
 	 */
 	function returnStatus($status, $msg = '', $title = '', $data = '', $code = '', $url = '', $wait = null, $onlyData = false){
-		\AdminPHP\Module\returnData::returnData($status, $msg, $title, $data, $code, $url, $wait, $onlyData);
+		\AdminPHP\Module\ReturnData::returnData($status, $msg, $title, $data, $code, $url, $wait, $onlyData);
 	}
 }
 
@@ -425,18 +460,6 @@ if(!function_exists('info')){
 	}
 }
 
-if(!function_exists('json')){
-	/**
-	 * 输出json
-	 *
-	 * @param mixed $arr 数组或其他可被json_encode编码的值
-	 * @return \AdminPHP\Model\ControllerReturn
-	 */
-	function json($data){
-		return new \AdminPHP\Model\ControllerReturn('data_json', func_get_args());
-	}
-}
-
 if(!function_exists('jsonp')){
 	/**
 	 * 输出jsonp并结束程序
@@ -452,15 +475,77 @@ if(!function_exists('jsonp')){
 	}
 }
 
-if(!function_exists('xml')){
+//========================================================================================
+//==== AdminPHP 配置文件 =================================================================
+//========================================================================================
+
+if(!function_exists('config')){
 	/**
-	 * 输出xml
+	 * 读取/写入配置*文件*
+	 * value为null则读取，不为空则写入。
 	 *
-	 * @param mixed  $arr 数组或其他可被json_encode编码的值
-	 * @param string $arr 回调函数名，留空则从i(callback)获取
-	 * @return \AdminPHP\Model\ControllerReturn
+	 * @param string $configName 配置文件名称
+	 * @param string $value      欲写入的值
+	 * @param string $configType 配置文件类型[array,json]
+	 * @param bool   $isThrow    失败时是否抛出异常
+	 *
+	 * @return mixed
 	 */
-	function xml($arr, $root = null){
-		return new \AdminPHP\Model\ControllerReturn('data_xml', func_get_args());
+	function &config(string $configName, $value = null, string $configType = 'array', $isThrow = false){
+		if(!is_null($value)){
+			$return = \AdminPHP\Module\Config::writeFile($configName, $value, $configType);
+			return $return;
+		}else{
+			return \AdminPHP\Module\Config::readFile($configName, $configType, $isThrow);
+		}
+	}
+}
+
+if(!function_exists('c')){
+	/**
+	 * 读取/写入配置*数据*
+	 * value为null则读取，不为空则写入。
+	 *
+	 * @param string $configName 配置文件名称
+	 * @param string $value      欲写入的值
+	 * @param string $configType 配置文件类型[array,json]
+	 * @param bool   $isThrow    失败时是否抛出异常
+	 *
+	 * @return mixed
+	 */
+	function &c(string $key, string $configName = null, $value = null, string $configType = 'array'){
+		if(!is_null($value)){
+			$return = \AdminPHP\Module\Config::write($key, $value, $configName, $configType);
+			return $return;
+		}else{
+			return \AdminPHP\Module\Config::read($key, $configName, $configType);
+		}
+	}
+}
+
+//========================================================================================
+//==== AdminPHP cli ======================================================================
+//========================================================================================
+if(!function_exists('print_c')){
+	function print_c($value, $time = true, $br = true){
+		return \AdminPHP\Module\Router\CmdRouter::print($value, $time, $br);
+	}
+}
+
+if(!function_exists('echo_c')){
+	function echo_c($value){
+		return \AdminPHP\Module\Router\CmdRouter::echo($value);
+	}
+}
+
+if(!function_exists('color')){
+	function color($text){
+		return \AdminPHP\Module\Router\CmdRouter::renderColor($text);
+	}
+}
+
+if(!function_exists('input')){
+	function input($title, $type, $default = '', $verify = null){
+		return \AdminPHP\Module\Router\CmdRouter\Wizard::input($title, $type, $default, $verify);
 	}
 }

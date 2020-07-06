@@ -15,6 +15,7 @@ namespace AdminPHP;
 
 use AdminPHP\Hook;
 use AdminPHP\Exception\ViewException;
+use AdminPHP\Module\PerformanceStatistics;
 use AdminPHP\Engine\View\KeYao as ViewEngine_KeYao;
 
 class View{
@@ -111,6 +112,7 @@ class View{
 	public static function view($file, $args = [], $isRoot = 0, $engine = true){
 		global $a, $c, $m;
 		
+		$file_ = $file;
 		Hook::do('template_view', ['file' => &$file, 'args' => &$args, 'isRoot' => &$isRoot, 'engine' => &$engine]);
 			
 		if($engine){
@@ -152,5 +154,7 @@ class View{
 			
 			include($__file);
 		})($args, $file);
+		
+		PerformanceStatistics::log('View: render[ ' . $file_ . ' ]');
 	}
 }

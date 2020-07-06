@@ -13,42 +13,32 @@
 
 namespace AdminPHP\Engine\Cache;
 
-class Memcache {
+class Memcached {
 	public $link = null;
 	
 	public function __construct($config){
 		$config = array_merge([
+			'options'	=> [
+				\Memcached::OPT_LIBKETAMA_COMPATIBLE	=> true,
+			],
 			'servers'	=> []
 		], $config);
 		
-		if(count($config['server']) == 0){
+		if(count($config['servers']) == 0){
 			throw new \InvalidArgumentException(l('请至少添加一个memcache服务器。'));
 		}
 		
-		$this->link = new \Memcache();
-		foreach($config['servers'] as $server){
-			if(count($server) < 2) continue;
-			
-			$this->link->addServer(
-				$server[0],
-				$server[1],
-				isset($server[2]) ? $server[2] : true,
-				isset($server[3]) ? $server[3] : 1,
-				isset($server[4]) ? $server[4] : 1,
-				isset($server[5]) ? $server[5] : 15,
-				isset($server[6]) ? $server[6] : true,
-				isset($server[7]) ? $server[7] : null,
-				isset($server[8]) ? $server[8] : null,
-			);
-		}
+		$this->link = new \Memcached('adminphp' . (isset($config['name']) ? '_' . $config['name'] : ''));
+		$this->link->addServers($config['servers']);
+		$this->link->setOptions($config['options']);
 	}
 	
 	public function get($key, $default = null){
-		return $this->link->get($key, false) ?: $default;
+		return $this->link->get($key) ?: $default;
 	}
 	
 	public function set($key, $value, $expiry = 0){
-		return $this->link->set($key, $value, 0, $expiry);
+		return $this->link->set($key, $value, $expiry);
 	}
 	
 	public function delete($key){

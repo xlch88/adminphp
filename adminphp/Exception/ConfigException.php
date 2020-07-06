@@ -13,14 +13,16 @@
 
 namespace AdminPHP\Exception;
 
+use Config;
+
 class ConfigException extends Exception{
-    public function __construct($code, $class, $filename = '', $type = '')
+    public function __construct($code, $filename = '', $type = '')
     {
 		$this->code = $code;
 		
-		$this->path = $class->path;
-		$this->prefix = $class->prefix;
-		$this->subfix = $class->subfix;
+		$this->path = Config::$path;
+		$this->prefix = Config::$prefix;
+		$this->subfix = Config::$subfix;
 		
 		switch($this->code){
 			case 0:

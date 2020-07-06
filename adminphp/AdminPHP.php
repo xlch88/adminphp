@@ -22,6 +22,8 @@ use AdminPHP\Module\AntiCSRF;
 use AdminPHP\Module\Cache;
 use AdminPHP\Module\PerformanceStatistics;
 use AdminPHP\Module\ReturnData;
+use AdminPHP\Module\Config;
+use AdminPHP\Module\DB;
 use AdminPHP\Exception\InitException;
 
 class AdminPHP{
@@ -33,27 +35,56 @@ class AdminPHP{
     static public $config = [
         'path'          => [
             'template'  => '',
-            'app'       => root . 'app'
+			'errorLog'	=> root . 'runtime' . DIRECTORY_SEPARATOR . 'errorlog',
         ],
         
         'router'    => [
-            'index'     => 'index/index/index',
-			
-            'default'   => [
-                'a'	=> 'index',
-                'c'	=> 'index',
-				'm'	=> 'index'
-			],
-			
-			'router'	=> 1,
-			'rewrite'	=> 0,
+            'web'	=> [],
+            'cmd'	=> [],
 		],
 		
-		'debug'		=> false,
+		'debug'			=> false,
+		'debugCookie'	=> false,
+		'debugInLan'	=> false,
+		'debugInLocal'	=> false,
 		
 		'performanceStatistics'	=> [
 			'enable'	=> true,
 			'show'		=> true
+		],
+		
+		'db'	=> [
+			'type'		=> '',
+			
+			'ip'		=> '127.0.0.1',
+			'port'		=> 3306,
+			'username'	=> '',
+			'password'	=> '',
+			'db'		=> '',
+			'unixSocket'=> '',
+			
+			'file'		=> '',
+			
+			'dsn'		=> '',
+			
+			'isLogSQL'	=> false,
+			'charset'	=> 'utf8',
+			'isThrow'	=> true,
+			'options'	=> [
+				\PDO::ATTR_ERRMODE	=> \PDO::ERRMODE_EXCEPTION
+			],
+			
+			'prefix'	=> '',
+		],
+		
+		'config'	=> [
+			'path'			=> appPath . 'Config',
+			'prefix'		=> '',
+			'subfix'		=> '.php',
+			'webConfigFile'	=> [
+				'name'	=> '',
+				'type'	=> ''
+			]
 		],
 		
 		'AntiCSRF'	=> [
@@ -85,6 +116,8 @@ class AdminPHP{
 		'timezone'	=> 'PRC'
 	];
 	
+	static public $app = null;
+	
 	/**
 	 * 初始化
 	 * @param array $config 配置信息
@@ -93,13 +126,25 @@ class AdminPHP{
 	static public function init($config){
 		global $a, $c, $m;
 		
+		// Include APP File
+		include(appPath . 'app.php');
+		PerformanceStatistics::log('AdmionPHP:include_app_file');
+		
+		self::$app = new \App\App;
+		self::appEvent('onInclude');
+		
+		// Load App Functions File
+		if(is_file(appPath . 'functions.php'))
+			include(appPath . 'functions.php');
+		
 		// Load Functions File
 		include(adminphp . 'Functions/functions.helper.php');
 		include(adminphp . 'Functions/functions.safe.php');
 		include(adminphp . 'Functions/functions.adminphp.php');
 		PerformanceStatistics::log('AdmionPHP:init_functions');
 		
-		self::$config = array_merge(self::$config, $config);
+		self::$config = array_merge2(self::$config, $config);
+		unset($config);
 		
 		// Performance Statistics
 		PerformanceStatistics::$show	= self::$config['performanceStatistics']['show'];
@@ -107,7 +152,6 @@ class AdminPHP{
 		
 		// Set timezone
 		date_default_timezone_set(self::$config['timezone']);
-		header('PHP-Framework: AdminPHP V' . adminphp_version_name . ' Build ' . adminphp_version);
 
 		// AutoLoader
 		include(adminphp . 'AutoLoad.php');
@@ -115,19 +159,14 @@ class AdminPHP{
 		
 		// Define Constants
 		self::define('method');
-		self::define('appPath');
 		
 		// AutoLoader
 		AutoLoad::initRegister();
 		
-		// Load App Functions File
-		if(is_file(appPath . 'functions.php'))
-			include(appPath . 'functions.php');
+		self::appEvent('onLoad');
 		
-		// Include APP File
-		include(appPath . 'app.php');
-		PerformanceStatistics::log('AdmionPHP:include_app_file');
-		Hook::do('app_include');
+		// Config
+		Config::init(self::$config['config']);
 		
 		// Language
 		Language::init(self::$config['language']['use'], self::$config['language']['cookieName']);
@@ -136,33 +175,47 @@ class AdminPHP{
 		// ErrorManager
 		self::registerErrorManager();
 		
+		//DB
+		if(self::$config['db']['type']){
+			new DB(self::$config['db']);
+			PerformanceStatistics::log('AdmionPHP:init_db');
+		}
+		
 		// Cache
 		if(self::$config['cache']['enable']){
 			Cache::init(self::$config['cache']);
 		}
-		
-		// View
-		View::init(self::$config['view']);
+		PerformanceStatistics::log('AdmionPHP:init_cache');
 		
 		// Router
-		Router::init(self::$config['router']);
+		Router::init(self::$config['router']['web'], self::$config['router']['cmd']);
 		PerformanceStatistics::log('AdmionPHP:init_router');
-
-		// AntiCSRF
-		if(self::$config['AntiCSRF']['enable']){
-			AntiCSRF::init(
-				self::$config['AntiCSRF']['cookieName'],
-				self::$config['AntiCSRF']['sessionName'],
-				self::$config['AntiCSRF']['argName'],
-				self::$config['AntiCSRF']['varName']
-			);
+		
+		if(Router::$type == 'web'){
+			header('PHP-Framework: AdminPHP');
+			// View
+			View::init(self::$config['view']);
+			
+			// AntiCSRF
+			if(self::$config['AntiCSRF']['enable']){
+				AntiCSRF::init(
+					self::$config['AntiCSRF']['cookieName'],
+					self::$config['AntiCSRF']['sessionName'],
+					self::$config['AntiCSRF']['argName'],
+					self::$config['AntiCSRF']['varName']
+				);
+			}
+			
+			Hook::do('app_define_template');
+			self::define('templatePath');
+		}else{
+			ob_implicit_flush(false);
 		}
 		
-		Hook::do('app_define_template');
-		self::define('templatePath');
 		
 		// Run App
 		Hook::do('app_init');
+		self::appEvent('onBoot');
 		PerformanceStatistics::log('AdmionPHP:app_init');
 		
 		// Run Controller
@@ -171,6 +224,14 @@ class AdminPHP{
 		/* 性能统计 END */
 		PerformanceStatistics::log('END');
 		PerformanceStatistics::show();
+	}
+	
+	static public function appEvent($event, $args = []){
+		if(method_exists(self::$app, $event)){
+			return call_user_func_array([self::$app, $event], $args);
+		}
+		
+		return false;
 	}
 	
 	/**
@@ -183,13 +244,6 @@ class AdminPHP{
 			return;
 		}
 		switch($var){
-			case 'appPath':
-				if(!realpath(self::$config['path']['app']) || !is_dir(self::$config['path']['app'])){
-					throw new InitException(0, self::$config['path']['app']);
-				}
-				defined('appPath') or define('appPath', self::$config['path']['app'] = realpath(self::$config['path']['app']) . DIRECTORY_SEPARATOR);
-			break;
-			
 			case 'templatePath':
 				if(self::$config['path']['template'] != '' && (!realpath(self::$config['path']['template']) || !is_dir(self::$config['path']['template']))){
 					throw new InitException(1, self::$config['path']['template']);
@@ -198,9 +252,13 @@ class AdminPHP{
 			break;
 			
 			case 'method':
-				defined('method')	or define('method', strtolower($_SERVER['REQUEST_METHOD']));
-				defined('is_post')	or define('is_post', strtolower($_SERVER['REQUEST_METHOD']) == 'post');
-				defined('is_get')	or define('is_get', !(strtolower($_SERVER['REQUEST_METHOD']) == 'post'));
+				global $argv;
+				
+				if(!isset($argv)){
+					defined('method')	or define('method', strtolower($_SERVER['REQUEST_METHOD']));
+					defined('is_post')	or define('is_post', strtolower($_SERVER['REQUEST_METHOD']) == 'post');
+					defined('is_get')	or define('is_get', !(strtolower($_SERVER['REQUEST_METHOD']) == 'post'));
+				}
 			break;
 		}
 	}
@@ -212,6 +270,25 @@ class AdminPHP{
 	 * @return void
 	 */
 	static private function registerErrorManager(){
+		if(AdminPHP::$config['debugCookie'] && isset($_COOKIE['adminphp_debug']) && $_COOKIE['adminphp_debug'] === AdminPHP::$config['debugCookie']){
+			AdminPHP::$config['debug'] = true;
+		}
+		
+		if(isset($_SERVER['REMOTE_ADDR'])){
+			$ip2long = ip2long($_SERVER['REMOTE_ADDR']);
+			if(AdminPHP::$config['debugInLan'] && (
+				$ip2long >= ip2long('10.0.0.0')		&& $ip2long <= ip2long('10.255.255.255')  ||
+				$ip2long >= ip2long('172.16.0.0')	&& $ip2long <= ip2long('172.31.255.255')  ||
+				$ip2long >= ip2long('192.168.0.0')	&& $ip2long <= ip2long('192.168.255.255')
+			)){
+				AdminPHP::$config['debug'] = true;
+			}
+			
+			if(AdminPHP::$config['debugInLocal'] && substr($_SERVER['REMOTE_ADDR'], 0, 4) == '127.'){
+				AdminPHP::$config['debug'] = true;
+			}
+		}
+		
 		if(AdminPHP::$config['debug'] == true){
 			error_reporting(E_ALL);
 		}else{

@@ -44,8 +44,14 @@ class Hook{
 	public static function do($id, $args = []){
 		if(isset(self::$hookList[$id])){
 			foreach(self::$hookList[$id] as $index => $function){
-				if($result = $function($args) === FALSE){
-					break;
+				if(is_array($function)){
+					if(($result = call_user_func_array($function, [$args])) === FALSE){
+						break;
+					}
+				}else{
+					if(($result = $function($args)) === FALSE){
+						break;
+					}
 				}
 				
 				if($result === TRUE){

@@ -14,12 +14,14 @@
 namespace AdminPHP;
 
 use AdminPHP\Exception\ErrorException;
-use AdminPHP\Router;
+use AdminPHP\Module\Router\WebRouter;
 use AdminPHP\Module\PerformanceStatistics;
 
 class ErrorManager{
 	static private $debug = false;
 	static public $adminInfo = [];
+	static public $logId = '';
+	static public $logPath = '';
 	
 	/**
 	 * 初始化错误管理
@@ -34,6 +36,9 @@ class ErrorManager{
 		]);
 		
 		self::$debug = AdminPHP::$config['debug'];
+		self::$logPath = AdminPHP::$config['path']['errorLog'] ? AdminPHP::$config['path']['errorLog'] . DIRECTORY_SEPARATOR : '';
+
+		if(self::$logPath && !is_dir(self::$logPath)) @mkdir(self::$logPath, 0777, true);
 	}
 	
 	/**
@@ -82,20 +87,27 @@ class ErrorManager{
 	 * @return void
 	 */
 	static public function exception($ex){
+		set_http_code(500);
+		
 		PerformanceStatistics::log('AdminPHP:error_manager');
+		
+		if(!self::$logId){
+			self::$logId = substr(md5(uniqid()), 0, 8);
+		}
 		
 		$info = [
 			'message'		=> $ex->getMessage(),
 			'code'			=> $ex->getCode(),
 			'file'			=> $ex->getFile(),
-			'fileText'		=> self::getFileLines($ex->getFile(), $ex->getLine() - 10, 20, $ex->getLine()),
+			'fileText'		=> self::getFileLines($ex->getFile(), $ex->getLine() - 9, 20, $ex->getLine()),
 			'line'			=> $ex->getLine(),
 			'class'			=> get_class($ex),
 			'trace'			=> self::formatTrace($ex->getTrace()),
 			'removeTrace'	=> isset($ex->removeTraceCount) ? $ex->removeTraceCount : 0,
 			'exceptionVars'	=> self::getExceptionVars($ex),
-			'url'			=> urldecode(Router::getUrl()),
-			'debug'			=> self::$debug
+			'url'			=> htmlspecialchars(urldecode(WebRouter::mkurl())),
+			'debug'			=> self::$debug,
+			'logId'			=> self::$logId
 		];
 		
 		if($info['removeTrace'] > 0){
@@ -103,6 +115,18 @@ class ErrorManager{
 		}
 		
 		$info = self::hiddenRootPath($info);
+
+		$log = self::mkErrorLog(self::hiddenRootPath([
+			'message'		=> $ex->getMessage(),
+			'code'			=> $ex->getCode(),
+			'file'			=> $ex->getFile(),
+			'line'			=> $ex->getLine(),
+			'class'			=> get_class($ex),
+			'trace'			=> $ex->getTrace(),
+			'exceptionVars'	=> self::getExceptionVars($ex),
+			'url'			=> urldecode(WebRouter::mkurl())
+		]));
+		$info['log'] = $log;
 		
 		$sysinfo = l('@adminphp.sysinfo.statusCode.500', [], [
 			'title'		=> '系统故障',
@@ -113,7 +137,6 @@ class ErrorManager{
 				'如果你发现了有什么不对，请迅速联系站点管理员',
 				'如果没什么不对的，那就再试一次看看？'
 			],
-		
 			'code'		=> '500',
 			'type'		=> 'error', //[info, error, success]
 			'title'		=> '系统故障'
@@ -123,10 +146,66 @@ class ErrorManager{
 		$sysinfo['errorInfo'] = $info;
 		$sysinfo['adminInfo'] = self::$adminInfo;
 		
-		
-		sysinfo($sysinfo);
+		if(Router::$type == 'web'){
+			sysinfo($sysinfo);
+		}else{
+			die($log);
+		}
 		
 		die();
+	}
+	
+	static private function mkErrorLog($info){
+		$log[] = '#' . self::$logId . ' - ' . date('Y-m-d H:i:s') . ' - ' . $info['class'] . ' : ' . $info['message'];
+		$log[] = "file : $info[file] (line:$info[line])";
+		$log[] = "url  : $info[url]";
+		$log[] = "Stack trace:";
+		
+		foreach($info['trace'] as $index => $row){
+			$t = " #${index} - ";
+			$t.= isset($row['file']) ? $row['file'] : 'NO FILE';
+			$t.= (isset($row['line']) ? ' (line:' . $row['line'] . ')' : ' (NO LINE)') . ' : ';
+			$t.= isset($row['class']) ? $row['class'] . $row['type'] . $row['function'] : $row['function'];
+			
+			$args = [];
+			if(isset($row['args'])){
+				foreach($row['args'] as $i => $row){
+					$args[] = htmlspecialchars_decode(self::varToString($row));
+				}
+			}
+			
+			$t.= '(' . implode(', ', $args) . ')';
+			$log[] = $t;
+		}
+		
+		if($info['exceptionVars']){
+			$log[] = "exception data:";
+			foreach($info['exceptionVars'] as $index => $row){
+				if($row['type'] == 0){
+					$t = "  ${index} -> " . print_r($row['value'][1], true);
+				}else{
+					$t = "  ${index} => [\r\n";
+					//$row['value'] = array_column($row['value'], 1);
+					foreach($row['value'] as $index2 => $value2){
+						$t.= '    ' . $index2 . ' : ' . $value2[1] . "\r\n";
+					}
+					
+					$t.= '  ]';
+				}
+				
+				$log[] = $t;
+			}
+		}
+		
+		$log = implode("\r\n", $log);
+		
+		if(self::$logPath && !self::$debug){
+			$logFile = self::$logPath . date('Y-m-d') . '.log';
+			//能写入就写入，写不成那也不应该再报错惹...
+			@file_put_contents($logFile, $log . "\r\n\r\n\r\n", FILE_APPEND);
+		}
+		
+		return $log;
 	}
 	
 	/**
@@ -193,11 +272,11 @@ class ErrorManager{
 	 */
 	static private function formatTrace($trace){
 		foreach($trace as $i => $row){
-			$trace[$i]['file'] = isset($row['file']) ? $row['file'] : 'NO FILE';
-			$trace[$i]['line'] = isset($row['line']) ? $row['line'] : 'NO LINE';
-			$trace[$i]['fileText'] = isset($row['file']) ? self::getFileLines($row['file'], $row['line'] - 4, 10, $row['line']) : '';
-			$trace[$i]['function_'] = isset($row['class']) ? $row['class'] . $row['type'] . $row['function'] : $row['function'];
-			$trace[$i]['args'] = isset($trace[$i]['args']) ? self::formatArgs($trace[$i]['args']) : [];
+			$trace[$i]['file']		= isset($row['file']) ? $row['file'] : 'NO FILE';
+			$trace[$i]['line']		= isset($row['line']) ? $row['line'] : 'NO LINE';
+			$trace[$i]['fileText']	= isset($row['file']) ? self::getFileLines($row['file'], $row['line'] - 4, 10, $row['line']) : '';
+			$trace[$i]['function_']	= isset($row['class']) ? $row['class'] . $row['type'] . $row['function'] : $row['function'];
+			$trace[$i]['args']		= isset($trace[$i]['args']) ? self::formatArgs($trace[$i]['args']) : [];
 		}
 		
 		return $trace;
@@ -215,11 +294,11 @@ class ErrorManager{
 			$var = htmlspecialchars('"' . ($strlen != 0 && mb_strlen($var, 'UTF-8') > $strlen ? mb_substr($var, 0, $strlen) . '...' : $var) . '"');
 			$var = str_replace(root, '[ROOT]' . DIRECTORY_SEPARATOR, $var);
 		}elseif(is_numeric($var) || is_bool($var)){
-			$var = $var;
-		}elseif(is_callable($var)){
+			$var = (string)$var;
+		}elseif(is_object($var) && ($var instanceof Closure)){
 			$var = '(Function)';
 		}elseif(is_object($var)){
-			$var = '(Object)';
+			$var = '('.gettype($var).' Object)';
 		}else{
 			$var = @htmlspecialchars((string)$var);
 		}
@@ -269,7 +348,7 @@ class ErrorManager{
 			if(($text = fgets($fp)) === FALSE){
 				break;
 			}
-			$content[] = str_replace(["\r","\n"], '', $line == $redline ? '[redline]' . $text . '[/redline]' : $text);
+			$content[] = str_replace(["\r","\n"], '', $text);
 		}
 		fclose($fp);
 		
