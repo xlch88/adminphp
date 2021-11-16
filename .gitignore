@@ -1,4 +1,5 @@
 runtime
-vendor
-!verdor/autoload.php
+vendor/*
+!vendor/autoload.php
 !vendor/composer
+!vendor/composer/*
