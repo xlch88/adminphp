@@ -17,15 +17,42 @@ use AdminPHP\Module\PerformanceStatistics;
 use AdminPHP\Exception\DBException;
 use AdminPHP\Module\DB\DBHelper;
 
+/**
+ *
+ */
 class DB {
+	/**
+	 * @var null
+	 */
 	public $link = null;
+	/**
+	 * @var array
+	 */
 	public $log = [];
+	/**
+	 * @var string
+	 */
 	public static $prefixReplace = '6F04CC78DA08B37A';
+	/**
+	 * @var bool
+	 */
 	public $isConnect = false;
+	/**
+	 * @var array
+	 */
 	public static $dbList = [];
+	/**
+	 * @var string|null
+	 */
 	public $dbid = null;
+	/**
+	 * @var null
+	 */
 	public $sQuery = null;
 	
+	/**
+	 * @var array
+	 */
 	public $config = [
 		/* --   数据库类型   -- */
 		'type'		=> 'mysql',			//类型[mysql,sqllite]
@@ -57,11 +84,14 @@ class DB {
 		'prefix'	=> '',				//表前缀
 	];
 	
+	/**
+	 * @var bool|mixed
+	 */
 	public $isThrow = true;	//出现错误时是否抛出异常
 	
 	/**
 	 * 初始化
-	 * 
+	 *
 	 * @param array  $dbConfig 数据库连接配置
 	 * @param string $id       数据库id，用于db()函数的返回
 	 * @return boolean
@@ -131,7 +161,7 @@ class DB {
 	
 	/**
 	 * 获取查询结果(全部)
-	 * 
+	 *
 	 * @param string $sql SQL语句
 	 * @return array
 	 */
@@ -143,9 +173,12 @@ class DB {
 	
 	/**
 	 * 获取查询结果(第一行)
-	 * 
+	 *
 	 * @param string $sql SQL语句
+	 * @param array $args
+	 * @param int $fetch_style
 	 * @return array
+	 * @throws DBException
 	 */
 	public function get_row($sql, $args = [], $fetch_style = \PDO::FETCH_ASSOC){
 		$this->execute($sql, $args);
@@ -155,24 +188,24 @@ class DB {
 	
 	/**
 	 * 使用DBHelper生成查询语句
-	 * 
-	 * @param string $cols 需要取出的列
-	 * @return \AdminPHP\Module\DB\DBHelper
+	 *
+	 * @return DBHelper
 	 */
 	public function select(){
 		$dbHelper = new DBHelper($this->dbid);
-		return call_user_func_array(array($dbHelper, 'select'), array(func_get_args()));
+		return call_user_func_array(array($dbHelper, 'select'), func_get_args());
 	}
-
+	
 	/**
 	 * 修改符合条件的行
-	 * 
-	 * @param string $table 表名
-	 * @param string $data 提交的数据
-	 * @param mixed  $where 条件
-	 * @return result
+	 *
+	 * @param string|null $table 表名
+	 * @param array|null $data 提交的数据
+	 * @param mixed|null $where 条件
+	 * @return int
+	 * @throws DBException
 	 */
-	public function update(string $table = null, array $data = null, $where = null){
+	public function update(string $table = null, array $data = null, mixed $where = null){
 		if(is_null($where) && is_null($data)){
 			$dbHelper = new DBHelper($this->dbid);
 			return call_user_func_array(array($dbHelper, 'update'), array($table));
@@ -193,12 +226,12 @@ class DB {
 	
 	/**
 	 * 删除符合条件的行
-	 * 
+	 *
 	 * @param string $table 表名
-	 * @param mixed  $where 条件
-	 * @return result
+	 * @param mixed|null $where 条件
+	 * @return int
 	 */
-	public function delete(string $table, $where = null){
+	public function delete(string $table, mixed $where = null){
 		if(is_null($where)){
 			$dbHelper = new DBHelper($this->dbid);
 			return call_user_func_array(array($dbHelper, 'delete'), array($table));
@@ -215,12 +248,13 @@ class DB {
 	
 	/**
 	 * 插入行并返回插入的主键ID
-	 * 
+	 *
 	 * @param string $table 表名
-	 * @param mixed $data 数组
+	 * @param array $data 数组
 	 * @return int
+	 * @throws DBException
 	 */
-	public function insert(string $table = null, $data = null){
+	public function insert(string $table, $data){
 		if(is_null($data)){
 			$dbHelper = new DBHelper($this->dbid);
 			return call_user_func_array(array($dbHelper, 'insert'), array($table));
@@ -238,7 +272,7 @@ class DB {
 	
 	/**
 	 * 获取COUNT查询数量
-	 * 
+	 *
 	 * @param string  $sql  SQL语句
 	 * @param array   $args 参数
 	 * @param boolean $int  是否转换为整数
@@ -252,7 +286,7 @@ class DB {
 	
 	/**
 	 * 执行SQL语句
-	 * 
+	 *
 	 * @param string  $sql	 SQL语句
 	 * @param array   $args	参数
 	 * @param boolean $isThrow 出现错误是否抛出异常
@@ -291,7 +325,7 @@ class DB {
 	
 	/**
 	 * 数组转换为sql语句
-	 * 
+	 *
 	 * @param array  $arr 数组
 	 * @param string $mode 模式(where或insert)
 	 * @return string
@@ -311,23 +345,42 @@ class DB {
 					throw new DBException(2, null, ['arr' => $arr, 'key' => $key, 'value' => $value]);
 				}
 				
-				$sql = '`' . self::safe(substr($key, 1)) . '` = ' . $value;
+				$sql = self::fixTableName(substr($key, 1)) . ' = ' . $value;
 			}elseif(substr($key, 0, 1) === '@'){		// KEY = '@array'
 				if(!is_array($value)){
 					throw new DBException(3, null, ['arr' => $arr, 'key' => $key, 'value' => $value]);
 				}
 				
 				if($mode == 'insert'){
-					$sql = '`' . self::safe(substr($key, 1)) . '` = "' . self::safe(json_encode($value)) . '"';
+					$sql = self::fixTableName(substr($key, 1)) . ' = "' . self::safe(json_encode($value)) . '"';
 				}else{
-					$sql = '`' . self::safe(substr($key, 1)) . '` IN ("' . implode('", "', safe2($value, 'sql')) . '")';
+					$sql = self::fixTableName(substr($key, 1)) . ' IN ("' . implode('", "', safe2($value, 'sql')) . '")';
 				}
 			}elseif(is_numeric($key)){				// KEY IS NUMBER
 				if(is_array($value)){
-					if(count($value) == 2){
-						$sql = '`' . self::safe($value[0]) . '` = "' . self::safe($value[1]) . '"';
+					$isIn = false;
+					if(substr($value[0], 0, 1) === '@'){
+						if(count($value) !== 2 && !is_array($value[1])){
+							throw new DBException(3, null, ['arr' => $arr, 'key' => $key, 'value' => $value]);
+						}
+						
+						if($mode == 'insert'){
+							$sql = self::fixTableName(substr($value[0], 1)) . ' = "' . self::safe(json_encode($value[1])) . '"';
+						}else{
+							$sql = self::fixTableName(substr($value[0], 1)) . ' IN ("' . implode('", "', safe2($value[1], 'sql')) . '")';
+						}
+					}else if(count($value) == 2){
+						if(substr($value[0], 0, 1) === '#'){
+							$sql = self::fixTableName(substr($value[0], 1)) . ' = ' . self::safe($value[1]);
+						}else{
+							$sql = self::fixTableName($value[0]) . ' = "' . self::safe($value[1]) . '"';
+						}
 					}elseif(count($value) == 3){
-						$sql = '`' . self::safe($value[0]) . '` ' . $value[1] . ' "' . self::safe($value[2]) . '"';
+						if(substr($value[0], 0, 1) === '#'){
+							$sql = self::fixTableName(substr($value[0], 1)) . ' ' . $value[1] . ' ' . self::safe($value[2]);
+						}else{
+							$sql = self::fixTableName($value[0]) . ' ' . $value[1] . ' "' . self::safe($value[2]) . '"';
+						}
 					}else{
 						throw new DBException(4, null, ['arr' => $arr, 'key' => $key, 'value' => $value]);
 					}
@@ -342,9 +395,9 @@ class DB {
 				}
 				
 				if($value === null){
-					$sql = '`' . self::safe($key) . '` = NULL';
+					$sql = self::fixTableName($key) . ' = NULL';
 				}else{
-					$sql = '`' . self::safe($key) . '` = "' . self::safe(self::toValue($value)) . '"';
+					$sql = self::fixTableName($key) . ' = "' . self::safe(self::toValue($value)) . '"';
 				}
 			}
 			
@@ -360,7 +413,7 @@ class DB {
 	
 	/**
 	 * 获取错误信息
-	 * 
+	 *
 	 * @return string
 	 */
 	public function error(){
@@ -370,7 +423,7 @@ class DB {
 	
 	/**
 	 * 转义表前缀
-	 * 
+	 *
 	 * @param mixed $val 值
 	 * @return boolean
 	 */
@@ -383,7 +436,7 @@ class DB {
 
 	/**
 	 * 是否符合mysql插入数据值
-	 * 
+	 *
 	 * @param mixed $val 值
 	 * @return boolean
 	 */
@@ -393,7 +446,7 @@ class DB {
 	
 	/**
 	 * 转为mysql插入数据值
-	 * 
+	 *
 	 * @param mixed $val 值
 	 * @return string
 	 */
@@ -407,7 +460,7 @@ class DB {
 
 	/**
 	 * 转义特殊字符
-	 * 
+	 *
 	 * @param mixed $text
 	 * @return string
 	 */
@@ -415,7 +468,11 @@ class DB {
 		$text = addslashes($text);
 		return str_replace('[T]', self::$prefixReplace, $text);
 	}
-
+	
+	/**
+	 * @param $spec
+	 * @return string
+	 */
 	static public function quoteName($spec){
         $spec = trim($spec);
         $seps = array(' AS ', ' ', '.');
@@ -427,15 +484,25 @@ class DB {
         }
         return self::replaceName($spec);
     }
-    
-    static protected function quoteNameWithSeparator($spec, $sep, $pos){
+	
+	/**
+	 * @param $spec
+	 * @param $sep
+	 * @param $pos
+	 * @return string
+	 */
+	static protected function quoteNameWithSeparator($spec, $sep, $pos){
         $len   = strlen($sep);
         $part1 = self::quoteName(substr($spec, 0, $pos));
         $part2 = self::replaceName(substr($spec, $pos + $len));
         return "[T]{$part1}{$sep}{$part2}";
 	}
 	
-    static protected function replaceName($name){
+	/**
+	 * @param $name
+	 * @return string
+	 */
+	static protected function replaceName($name){
         $name = trim($name);
         if ($name == '*') {
             return $name;
@@ -443,7 +510,11 @@ class DB {
         return '`' . $name . '`';
 	}
 	
-    static public function fixJoinCondition($cond){
+	/**
+	 * @param $cond
+	 * @return string|null
+	 */
+	static public function fixJoinCondition($cond){
         if (!$cond) {
             return '';
         }
@@ -461,7 +532,11 @@ class DB {
         return 'ON ' . $cond;
 	}
 	
-    static public function quoteNamesIn($text){
+	/**
+	 * @param $text
+	 * @return string|null
+	 */
+	static public function quoteNamesIn($text){
         $list = self::getListForQuoteNamesIn($text);
         $last = count($list) - 1;
         $text = null;
@@ -473,7 +548,11 @@ class DB {
         return $text;
 	}
 	
-    static protected function getListForQuoteNamesIn($text){
+	/**
+	 * @param $text
+	 * @return array|false|string[]
+	 */
+	static protected function getListForQuoteNamesIn($text){
         $apos = "'";
         $quot = '"';
         return preg_split(
@@ -484,14 +563,23 @@ class DB {
         );
 	}
 	
-    static protected function quoteNamesInLoop($val, $is_last){
+	/**
+	 * @param $val
+	 * @param $is_last
+	 * @return mixed|string|string[]|null
+	 */
+	static protected function quoteNamesInLoop($val, $is_last){
         if ($is_last) {
             return self::replaceNamesAndAliasIn($val);
         }
         return self::replaceNamesIn($val);
 	}
 	
-    static protected function replaceNamesAndAliasIn($val){
+	/**
+	 * @param $val
+	 * @return mixed|string|string[]|null
+	 */
+	static protected function replaceNamesAndAliasIn($val){
         $quoted = self::replaceNamesIn($val);
         $pos    = strripos($quoted, ' AS ');
         if ($pos !== false) {
@@ -504,6 +592,10 @@ class DB {
         return $quoted;
 	}
 	
+	/**
+	 * @param $text
+	 * @return mixed|string|string[]|null
+	 */
 	static protected function replaceNamesIn($text){
         if (strpos($text, "'") !== false || strpos($text, '"') !== false) {
             return $text;
@@ -517,4 +609,29 @@ class DB {
 
         return $text;
     }
+	
+	/**
+	 * @param $table
+	 * @return string
+	 * @throws \Exception
+	 */
+	static protected function fixTableName($table){
+		$table = trim($table);
+		
+		if(strpos($table, '`') !== FALSE){
+			return $table;
+		}
+		
+		$t = false;
+		if(substr($table, 0, 1) == '#'){
+			$table = substr($table, 1);
+			$t = true;
+		}
+		
+		if(!preg_match('/^([a-zA-Z0-9_]+)(\.|)([a-zA-Z0-9_]*?)$/', $table, $match)){
+			throw new \Exception('Table "' . $table . '" Cannot match!');
+		}
+		
+		return ($t ? '#' : '') . ($match[3] ? '`' . $match[1] . '`.`' . $match[3] . '`' : '`' . $match[1] . '`');
+	}
 }

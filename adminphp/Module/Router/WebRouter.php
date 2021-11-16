@@ -12,6 +12,7 @@ class WebRouter{
 	 * @var array
 	 */
 	static public $args = [];
+	static public $postJsonArgs = [];
 
 	/**
 	 * url信息
@@ -96,11 +97,12 @@ class WebRouter{
 		self::$option = array_merge2(self::$option, $config['options']);
 		self::$regexList = array_merge(self::$regexList, $config['regex']);
 		self::initWebRoute($config['routes']);
+		self::$postJsonArgs = self::parsePostJsonArgs();
 		
 		self::$info = [
 			'https'			=> self::isSSL(),
 			'domain'		=> isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '',
-			'port'			=> isset($_SERVER['SERVER_PORT']) ? isset($_SERVER['SERVER_PORT']) : 80,
+			'port'			=> isset($_SERVER['SERVER_PORT']) ? $_SERVER['SERVER_PORT'] : 80,
 			'path'			=> self::parsePath(),
 			'root'			=> self::getRoot(),
 			
@@ -249,6 +251,20 @@ class WebRouter{
 		self::$urlToPath = $urlToPath;
 		self::$pathToUrl = $pathToUrl;
 	}
+	
+	/**
+	 * 解析POST JSON发送的参数
+	 *
+	 * @return array
+	 */
+	static private function parsePostJsonArgs(){
+		if(isset($_SERVER['HTTP_CONTENT_TYPE']) && stripos($_SERVER['HTTP_CONTENT_TYPE'], 'application/json') !== FALSE && ($args = @json_decode(file_get_contents('php://input'), true))){
+			return $args;
+		}
+		
+		return [];
+	}
+	
 	/**
 	 * 解析WEB路由
 	 * 返回 ['a' => app, 'c' => controller, 'm' => method]
@@ -316,6 +332,7 @@ class WebRouter{
 			if(substr($path, 0, 1) == '/'){
 				$path = substr($path, 1);
 			}
+			
 			if(
 				substr($path, 0, strlen(self::$option['autoRoute']['prefix'])) === self::$option['autoRoute']['prefix'] &&
 				count($explode = explode(self::$option['autoRoute']['explode'], substr(
@@ -323,7 +340,7 @@ class WebRouter{
 					strlen(self::$option['autoRoute']['prefix']),
 					strlen($path) - strlen(self::$option['autoRoute']['prefix']) - strlen(self::$option['autoRoute']['subfix'])
 				))) === 3 && 
-				substr($path, -strlen(self::$option['autoRoute']['subfix'])) === self::$option['autoRoute']['subfix']
+				(self::$option['autoRoute']['subfix'] === '' ? '' : substr($path, -strlen(self::$option['autoRoute']['subfix']))) === self::$option['autoRoute']['subfix']
 			){
 				//这里safepath过滤一下
 				
@@ -452,9 +469,9 @@ class WebRouter{
 			$args = array_merge(self::realPath($path, false), $args);
 			return self::mkurl('', $args);
 		}
-		
+
 		//嗯哼，抛异常啦
-		die('未能匹配路由:' . $path . '?' . http_build_query($args));
+		throw new \Exception('未能匹配路由:' . $path . '?' . http_build_query($args));
 	}
 	
 	/**
@@ -476,7 +493,7 @@ class WebRouter{
 		if(is_null($path))		$path	= self::$info['path'];
 		if(is_null($args))		$args	= $_GET;
 		if(is_null($domain))	$domain	= self::$info['domain'];
-		if(is_null($port))		$port	= self::$info['port'];
+		if(is_null($port))		$port	= $domain === self::$info['domain'] ? '' : self::$info['port'];
 		if(is_null($https))		$https	= self::$info['https'];
 		
 		//如果是https或者端口是80，就没必要显示端口
@@ -497,7 +514,7 @@ class WebRouter{
 		//未开启rewrite
 		if(!self::$option['rewrite']){
 			$root = self::$info['root'];
-			if(strtolower(substr($root, -9)) == 'index.php' && (self::$option['router'] == 2 || self::$option['router'] == 3)){
+			if(strtolower(substr($root, -9)) == 'index.yao.php' && (self::$option['router'] == 2 || self::$option['router'] == 3)){
 				$root = substr($root, 0, strlen($root) - 9);
 			}
 			
@@ -559,15 +576,15 @@ class WebRouter{
 		$return = '';
 		
 		switch(self::$option['router']){
-			case 1:		//1 = PATH_INFO		=> index.php/aaa/bbb/ccc
+			case 1:		//1 = PATH_INFO		=> index.yao.php/aaa/bbb/ccc
 				$return = isset($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] : '';
 			break;
 			
-			case 2:		//2 = $_GET['s']	=> index.php?s=aaa/bbb/ccc
+			case 2:		//2 = $_GET['s']	=> index.yao.php?s=aaa/bbb/ccc
 				$return = isset($_GET['s']) ? $_GET['s'] : '';
 			break;
 			
-			case 3:		//3 = index.php?	=> index.php?aaa/bbb/ccc
+			case 3:		//3 = index.yao.php?	=> index.yao.php?aaa/bbb/ccc
 				$uri = $_SERVER['REQUEST_URI'];
 				$return = '/' . (strpos($uri, '?') === FALSE ? '' : (strpos($uri, '&') !== FALSE ? substr($uri, strpos($uri, '?') + 1, strpos($uri, '&') - (strpos($uri, '?') + 1)) : substr($uri, strpos($uri, '?') + 1)));
 				

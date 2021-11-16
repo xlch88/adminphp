@@ -1,2 +1,4 @@
-runtime/cache
-runtime/view
+runtime
+vendor
+!verdor/autoload.php
+!vendor/composer

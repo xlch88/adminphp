@@ -15,27 +15,30 @@ class ReturnData{
 	 * @return void
 	 */
 	static public function init(){
-		$HTTP_ACCEPT = isset($_SERVER['HTTP_ACCEPT']) ? $_SERVER['HTTP_ACCEPT'] : '';
-		
-		if(strpos($HTTP_ACCEPT, 'application/json') !== FALSE){
-			self::$accept = 'json';
-		}elseif(
-			strpos($HTTP_ACCEPT, 'text/javascript') !== FALSE || 
-			strpos($HTTP_ACCEPT, 'application/javascript') !== FALSE || 
-			strpos($HTTP_ACCEPT, 'application/ecmascript') !== FALSE || 
-			strpos($HTTP_ACCEPT, 'application/x-ecmascript') !== FALSE || 
-			i('callback')
-		){
-			self::$accept = 'jsonp';
-		}elseif(
-			strpos($HTTP_ACCEPT, 'text/html') === FALSE && (
-				strpos($HTTP_ACCEPT, 'application/xml') !== FALSE || 
-				strpos($HTTP_ACCEPT, 'text/xml') !== FALSE
-			)
-		){
-			self::$accept = 'xml';
-		}else{
-			self::$accept = 'normal';
+		if(!self::$accept){
+			$HTTP_ACCEPT = $_SERVER['HTTP_ACCEPT'] ?? '';
+			$HTTP_CONTENT_TYPE = $_SERVER['HTTP_CONTENT_TYPE'] ?? '';
+
+			if(stripos($HTTP_ACCEPT, 'application/json') !== FALSE || stripos($HTTP_CONTENT_TYPE, 'application/json') !== FALSE){
+				self::$accept = 'json';
+			}elseif(
+				stripos($HTTP_ACCEPT, 'text/javascript') !== FALSE ||
+				stripos($HTTP_ACCEPT, 'application/javascript') !== FALSE ||
+				stripos($HTTP_ACCEPT, 'application/ecmascript') !== FALSE ||
+				stripos($HTTP_ACCEPT, 'application/x-ecmascript') !== FALSE ||
+				i('callback')
+			){
+				self::$accept = 'jsonp';
+			}elseif(
+				stripos($HTTP_ACCEPT, 'text/html') === FALSE && (
+					stripos($HTTP_ACCEPT, 'application/xml') !== FALSE ||
+					stripos($HTTP_ACCEPT, 'text/xml') !== FALSE
+				)
+			){
+				self::$accept = 'xml';
+			}else{
+				self::$accept = 'normal';
+			}
 		}
 		
 		if(self::$allowDataTypeArgs){
@@ -154,19 +157,16 @@ class ReturnData{
 	static public function encodeReturnInfo($returnInfo, $encodeType = 'json'){
 		switch($encodeType){
 			case 'json':
-				header('Content-Type: application/json');
-				return json_encode($returnInfo, JSON_PRETTY_PRINT + JSON_UNESCAPED_UNICODE);
-			break;
+				returnJson($returnInfo);
+				break;
 			
 			case 'jsonp':
 				header('Content-Type: application/javascript');
-				return safe_html(i(self::$jsonpCallback)) . '(' . json_encode($returnInfo, JSON_PRETTY_PRINT + JSON_UNESCAPED_UNICODE) . ')';
-			break;
+				return safe_html(i(self::$jsonpCallback)) . '(' . json($returnInfo) . ')';
 			
 			case 'xml':
 				header('Content-Type: application/xml');
 				return arr2xml($returnInfo);
-			break;
 			
 			case 'normal':
 			default:
@@ -226,7 +226,7 @@ class ReturnData{
 	 * @param array $args 参数列表
 	 * @return void
 	 */
-	static public function sysinfo($args = []){
+	static public function sysinfo(array $args = []){
 		if(!isset($args['title'])){
 			switch($args['type']){
 				case 'success':
@@ -327,7 +327,7 @@ class ReturnData{
 			'info'		=> '#bdc3fd'
 		];
 		
-		$defaultValue['color'] = isset($defaultValue['color']) ? $defaultValue['color'] : 
+		$defaultValue['color'] = isset($defaultValue['color']) ? $defaultValue['color'] :
 			(isset($defaultValue['colorList'][$defaultValue['type']]) ? $defaultValue['colorList'][$defaultValue['type']] : $defaultValue['colorList']['success']);
 
 		extract($defaultValue);

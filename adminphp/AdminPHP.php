@@ -113,10 +113,14 @@ class AdminPHP{
 			'engine'	=> 'keyao'
 		],
 		
-		'timezone'	=> 'PRC'
+		'timezone'	=> 'PRC',
+		
+		'flags'		=> [ 'minJson' ]
 	];
 	
 	static public $app = null;
+	
+	static public $classLoader;
 	
 	/**
 	 * 初始化
@@ -152,16 +156,18 @@ class AdminPHP{
 		
 		// Set timezone
 		date_default_timezone_set(self::$config['timezone']);
-
+		
+		self::$classLoader = include(root . 'vendor/autoload.php');
+		
 		// AutoLoader
-		include(adminphp . 'AutoLoad.php');
-		AutoLoad::init();
+		//include(adminphp . 'AutoLoad.php');
+		//AutoLoad::init();
 		
 		// Define Constants
 		self::define('method');
 		
 		// AutoLoader
-		AutoLoad::initRegister();
+		//AutoLoad::initRegister();
 		
 		self::appEvent('onLoad');
 		
@@ -236,7 +242,7 @@ class AdminPHP{
 	
 	/**
 	 * 定义常量
-	 * 
+	 *
 	 * @return void
 	 */
 	static private function define($var){
@@ -266,7 +272,7 @@ class AdminPHP{
 	/**
 	 * 注册错误管理
 	 * 没有错误或异常的时候，没必要加载ErrorManager，所以把回调注册在这里。
-	 * 
+	 *
 	 * @return void
 	 */
 	static private function registerErrorManager(){
@@ -278,7 +284,7 @@ class AdminPHP{
 			$ip2long = ip2long($_SERVER['REMOTE_ADDR']);
 			if(AdminPHP::$config['debugInLan'] && (
 				$ip2long >= ip2long('10.0.0.0')		&& $ip2long <= ip2long('10.255.255.255')  ||
-				$ip2long >= ip2long('172.16.0.0')	&& $ip2long <= ip2long('172.31.255.255')  ||
+				$ip2long >= ip2long('172.16.0.0')		&& $ip2long <= ip2long('172.31.255.255')  ||
 				$ip2long >= ip2long('192.168.0.0')	&& $ip2long <= ip2long('192.168.255.255')
 			)){
 				AdminPHP::$config['debug'] = true;
@@ -301,7 +307,7 @@ class AdminPHP{
 	
 	/**
 	 * 异常回调
-	 * 
+	 *
 	 * @param exception $ex 异常
 	 * @return void
 	 */
@@ -312,7 +318,7 @@ class AdminPHP{
 	
 	/**
 	 * 错误回调
-	 * 
+	 *
 	 * @param int    $errno   错误代码
 	 * @param string $errstr  错误信息
 	 * @param string $errfile 错误文件

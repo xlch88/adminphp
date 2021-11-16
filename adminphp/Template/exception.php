@@ -1,11 +1,9 @@
-<link href="https://cdn.bootcss.com/SyntaxHighlighter/3.0.83/styles/shCore.min.css" rel="stylesheet">
-<link href="https://cdn.bootcss.com/SyntaxHighlighter/3.0.83/styles/shThemeDefault.min.css" rel="stylesheet">
 <div class="adminphp_info adminphp_exception">
 	<div class="adminphp_info_img adminphp_info_img_exception"></div>
 	<div class="adminphp_exception_errorInfo">
 		<h2><?=l('异常捕获 _(:з」∠)_'); ?></h2>
 		<div class="table-responsive">
-			<table class="adminphp_exception_errorInfo_errorText">
+			<table class="adminphp_exception_info_table">
 				<tr>
 					<td><?=l('页面地址：'); ?></td>
 					<td><?=safe_html($url); ?></td>
@@ -29,12 +27,12 @@
 			</table>
 		</div>
 		<?php if($debug){ ?>
-		<div class="table-responsive">
-			<pre class="brush: php; highlight: [<?=$line; ?>]; first-line: <?=($line - 9);?>;"><?=str_replace(['[redline]', '[/redline]'], ['<span class="redLine">', '</span>'], safe_html($fileText)); ?></pre>
+		<div class="table-responsive now-code" style="display:none;">
+			<pre class="brush: php; highlight: [<?=$line; ?>]; first-line: <?=($line - 9 >= 1 ? $line - 9 : 1);?>;"><?=str_replace(['[redline]', '[/redline]'], ['<span class="redLine">', '</span>'], safe_html($fileText)); ?></pre>
 		</div>
 		<?php } ?>
 	</div>
-	<?php if($debug){ ?>
+	<?php if($debug && $exceptionVars){ ?>
 	<div class="adminphp_exception_vars">
 		<h2><?=l('数据输出 (〜￣△￣)〜'); ?></h2>
 
@@ -65,12 +63,12 @@
 		<h2><?=l('来源追踪 ╮(╯﹏╰）╭'); ?> <span class="allOpen"><?=l('[全部打开]'); ?></span></h2>
 		<?php foreach($trace as $row){ ?>
 		<div class="item">
-			<div class="filepath b-green">
+			<div class="file-path b-green">
 				<p><font class="c-red"><?=$row['file']; ?></font> (line <font class="c-red"><?=$row['line']; ?></font>):</p>
 				<p><span class="func"><?=$row['function_']; ?></span>(<?php
 					$echo = [];
 					foreach($row['args'] as $arg){
-						$tmp = '<span class="funcargs" title="' . safe_attr($arg[1]) . '">';
+						$tmp = '<span class="func-args" title="' . safe_attr($arg[1]) . '">';
 						$tmp.= $arg[0];
 						$tmp.= '</span>';
 						$echo[] = $tmp;
@@ -80,7 +78,7 @@
 				</p>
 			</div>
 			<div class="table-responsive" style="display:none;">
-				<pre class="brush: php; first-line: <?=((int)$row['line'] - 4);?>; highlight: [<?=$row['line']; ?>];"><?=str_replace(['[redline]', '[/redline]'], ['    ', '<span class="redLine">', '</span>'], safe_html($row['fileText'])); ?></pre>
+				<pre class="brush: php; first-line: <?=(int)(($row['line'] - 4) >= 1 ? $row['line'] - 4 : 1);?>; highlight: [<?=$row['line']; ?>];"><?=str_replace(['[redline]', '[/redline]'], ['    ', '<span class="redLine">', '</span>'], safe_html($row['fileText'])); ?></pre>
 			</div>
 		</div>
 		<?php } ?>
@@ -89,7 +87,7 @@
 	<div class="adminphp_exception_adminInfo">
 		<h2><?=l('管理员信息'); ?> <span><?=l('请将错误信息发送给管理员'); ?></span></h2>
 		<div class="ta ble-responsive">
-			<table class="adminphp_exception_errorInfo_errorText">
+			<table class="adminphp_exception_info_table">
 				<thead>
 				<tr>
 					<td>错误发生时间：</td>
@@ -112,21 +110,23 @@
 		</div>
 	</div>
 </div>
-<!-- 没有jq真是太难受了 -->
-<script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
-<script type="text/javascript" src="https://cdn.bootcss.com/SyntaxHighlighter/3.0.83/scripts/shCore.js"></script>
-<script type="text/javascript" src="https://cdn.bootcss.com/SyntaxHighlighter/3.0.83/scripts/shBrushPhp.js"></script>
-<script type="text/javascript">
-	SyntaxHighlighter.all()
-</script>
+
+<link href="https://cdn.bootcdn.net/ajax/libs/SyntaxHighlighter/3.0.83/styles/shCore.min.css" rel="stylesheet" crossorigin="anonymous" integrity="sha384-jU8gV/156nb2i2HpAqxQEn1XPSJ/gKbXU2uBnZ9UvaEeJkFxgujxewaPlpTZU1yP">
+<link href="https://cdn.bootcdn.net/ajax/libs/SyntaxHighlighter/3.0.83/styles/shThemeDefault.min.css" rel="stylesheet" crossorigin="anonymous" integrity="sha384-ORwhBUiLBTQVN92YaWYqzOal69wsFexG8mlI7I44PSvRQ1k76SGBbDXgRkC7+wRj">
+<script src="https://cdn.bootcdn.net/ajax/libs/jquery/1.12.4/jquery.min.js" crossorigin="anonymous" integrity="sha384-nvAa0+6Qg9clwYCGGPpDQLVpLNn0fRaROjHqs13t4Ggj3Ez50XnGQqc/r8MhnRDZ"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/SyntaxHighlighter/3.0.83/scripts/shCore.min.js" crossorigin="anonymous" integrity="sha384-GquH7MN7EAukzbL03Gac5E6rOq0xtps3CyAi+h+zsb10kROSZOSzjxiVqGxt8684"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/SyntaxHighlighter/3.0.83/scripts/shBrushPhp.min.js" crossorigin="anonymous" integrity="sha384-wQ+20r96tS2dNHZ9ZNXvmgs+IXZ6m6Ww5UbNvKyvxQC4YoEY0AxfJWVbJd2jpWxV"></script>
+
 <script>
 $(function(){
-	$('.adminphp_exception_trace>.item>.filepath>p:nth-child(1)').click(function(){
+	SyntaxHighlighter.all();
+	
+	$('.adminphp_exception_trace>.item>.file-path>p:nth-child(1)').click(function(){
 		$('.table-responsive', $(this).parent().parent()).toggle();
 	});
 	
 	$('.allOpen').click(function(){
-		if($(this).html() == '<?=l("[全部打开]"); ?>'){
+		if($(this).html() === '<?=l("[全部打开]"); ?>'){
 			$('.adminphp_exception_trace>.item .table-responsive').show();
 			$(this).html('<?=l("[全部关闭]"); ?>');
 		}else{
@@ -144,29 +144,14 @@ $(function(){
 		alert($(this).attr('title'));
 	});
 	
+	//不在调试控制台里显示
+	$('.now-code').show();
+	
 	//小米电视给我爬
-	if(navigator.userAgent.indexOf('MiTV') != -1){
+	if(navigator.userAgent.indexOf('MiTV') !== -1){
 		setTimeout(function(){
 			location.reload();
 		}, 3000);
 	}
 });
 </script>
-<style>
-.syntaxhighlighter a, .syntaxhighlighter div, .syntaxhighlighter code{
-	font-size:15px!important;
-}
-.syntaxhighlighter .toolbar{
-	display:none;
-}
-.syntaxhighlighter {
-    margin: 0!important;
-	overflow-y: hidden!important;
-}
-.syntaxhighlighter .gutter .line.highlighted {
-    background-color: #93ddff!important;
-}
-.syntaxhighlighter .gutter .line {
-    border-right: 3px solid #93ddff!important;
-}
-</style>

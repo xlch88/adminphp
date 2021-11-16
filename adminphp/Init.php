@@ -13,8 +13,9 @@
 
 define('adminphp', dirname(__FILE__) . DIRECTORY_SEPARATOR);
 
-define('adminphp_version',		2002);
-define('adminphp_version_name', '2.0Beta');
+const adminphp_version = 2003;
+const adminphp_version_name = '2.2(Beta)';
+const appPath = root . 'app' . DIRECTORY_SEPARATOR;
 
 header("Content-type: text/html; charset=utf-8");
 

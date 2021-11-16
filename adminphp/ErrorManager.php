@@ -54,6 +54,8 @@ class ErrorManager{
 		if (!(error_reporting() & $errno)) {
 			return false;
 		}
+
+		error_reporting(0);
 		
 		if(!class_exists('\\AdminPHP\\Exception\\Error\\WarningException', false)){
 			include(adminphp . 'Exception' . DIRECTORY_SEPARATOR . 'Errors.php');
@@ -87,6 +89,8 @@ class ErrorManager{
 	 * @return void
 	 */
 	static public function exception($ex){
+		error_reporting(0);
+
 		set_http_code(500);
 		
 		PerformanceStatistics::log('AdminPHP:error_manager');

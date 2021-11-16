@@ -13,7 +13,7 @@
 
 namespace AdminPHP\Exception;
 
-use Config;
+use AdminPHP\Module\Config;
 
 class ConfigException extends Exception{
     public function __construct($code, $filename = '', $type = '')

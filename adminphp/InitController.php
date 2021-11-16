@@ -13,44 +13,40 @@
 
 namespace AdminPHP;
 
-use AdminPHP\AdminPHP;
-use AdminPHP\AutoLoad;
-use AdminPHP\Hook;
-
 class InitController{
 	/**
 	 * 初始化控制器
-	 * 
+	 *
 	 * @return void
 	 */
 	static public function init(){
 		global $a, $c, $m;
 		
 		if($a != ''){
-			$controller = '\\App\\' . ucfirst($a) . '\\Controller\\' . ucfirst($c) . 'Controller';
+			$controller = 'App\\' . ucfirst($a) . '\\Controller\\' . ucfirst($c) . 'Controller';
 		}else{
-			$controller = '\\App\\Controller\\' . ucfirst($c) . 'Controller';
+			$controller = 'App\\Controller\\' . ucfirst($c) . 'Controller';
 		}
 		
-		if(($file = AutoLoad::load($controller, false, true)) === FALSE){
-			self::error(404); //控制器文件未找到
+		if(($file = AdminPHP::$classLoader->findFile($controller)) === FALSE){
+			self::error(404, $controller); //控制器文件未找到
 			return;
 		}
 		
 		include($file);
 		
 		if(!class_exists($controller, false)){
-			self::error(500); //控制器文件找到但是未找到控制器Class
+			self::error(500, $controller); //控制器文件找到但是未找到控制器Class
 			return;
 		}
 		
 		if(!method_exists($controller, $m) || $m == 'init'){
-			self::error(404); //控制器已加载但找不到方法
+			self::error(404, $controller); //控制器已加载但找不到方法
 			return;
 		}
 		
 		if(!((new \ReflectionMethod($controller, $m))->isPublic())){
-			self::error(403); //访问私有方法
+			self::error(403, $controller); //访问私有方法
 			return;
 		}
 		
@@ -104,9 +100,15 @@ class InitController{
 				break;
 			}
 		}elseif(is_array($return)){
-			call_user_func_array('returnData', [ $return, 'info' ]);
+			returnJson($return);
 		}elseif(is_bool($return) === true){
 			die($return ? 'true' : 'false');
+		}elseif(
+			substr($return, 0, 1) === '{' && substr($return, -1) === '}' ||
+			substr($return, 0, 1) === '[' && substr($return, -1) === ']'
+		){
+			header('Content-Type: application/json; charset=UTF-8');
+			die((string)$return);
 		}else{
 			die((string)$return);
 		}
@@ -114,12 +116,12 @@ class InitController{
 	
 	/**
 	 * 发生错误的处理
-	 * 
+	 *
 	 * @param int $type 错误代码
 	 * @return void
 	 */
-	static private function error($type = 404){
-		if(AdminPHP::appEvent('onControllerError', [ $type ]) || Hook::do('controller_error', [ 'type' => $type ])){ //用户自定义处理
+	static private function error($type = 404, $controller = ''){
+		if(AdminPHP::appEvent('onControllerError', [ $type, $controller ]) || Hook::do('controller_error', [ 'type' => $type ])){ //用户自定义处理
 			return;
 		}
 		switch($type){
@@ -140,19 +142,20 @@ class InitController{
 			break;
 			
 			case 500:
-				sysinfo(l('@adminphp.sysinfo.statusCode.500', $type, [
-					'code'		=> '%s',
-					'type'		=> 'error', //[info, error, success]
-					'title'		=> '啊哈... 出了一点点小问题_(:з」∠)_',
-					'info'		=> '页面找不到啦...',
-					'moreTitle'	=> '可能的原因：',
-					'more'		=> [
-						'程序员手滑写错了什么东西...',
-						'手滑输错了地址',
-						'你在用脸滚键盘',
-						'你的猫在键盘漫步'
-					]
-				]));
+				throw new \Exception('Controller file exist but Class not found: ' . $controller);
+//				sysinfo(l('@adminphp.sysinfo.statusCode.500', $type, [
+//					'code'		=> '%s',
+//					'type'		=> 'error', //[info, error, success]
+//					'title'		=> '啊哈... 出了一点点小问题_(:з」∠)_',
+//					'info'		=> '页面找不到啦...',
+//					'moreTitle'	=> '可能的原因：',
+//					'more'		=> [
+//						'程序员手滑写错了什么东西...',
+//						'手滑输错了地址',
+//						'你在用脸滚键盘',
+//						'你的猫在键盘漫步'
+//					]
+//				]));
 			break;
 			
 			case 403:

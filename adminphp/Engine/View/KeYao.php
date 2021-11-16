@@ -42,7 +42,7 @@ class KeYao {
 		$config = array_merge([
 			'path'			=> root . 'runtime' . DIRECTORY_SEPARATOR . 'view',
 			'file_subfix'	=> '.php',
-			'file_render'	=> '.yao.php'
+			'file_render'	=> ['.yao.php', '.blade.php']
 		], $config);
 		
 		if(!realpath($config['path']) || !file_exists($config['path'])){
@@ -85,14 +85,23 @@ class KeYao {
 		if(is_file($_templateFilePath . $_file)){ //不处理
 			return $_templateFilePath . $_file;
 		}
-		
-		$_file = $file . $this->config['file_render'];
-		Hook::do('template_file', ['templateFilePath' => &$_templateFilePath, 'templateFile' => &$_file, 'isRoot' => $isRoot]);
-		$_file = $_templateFilePath . $_file;
-		
-		if(!is_file($_file)){
+
+		$hasFile = false;
+		foreach($this->config['file_render'] as $file_suffix){
+			$_file = $file . $file_suffix;
+			Hook::do('template_file', ['templateFilePath' => &$_templateFilePath, 'templateFile' => &$_file, 'isRoot' => $isRoot]);
+			$_file = $_templateFilePath . $_file;
+
+			if(is_file($_file)){
+				$hasFile = true;
+				break;
+			}
+		}
+
+		if(!$hasFile){
 			throw new ViewException(0, $_templateFilePath, $file, $_file);
 		}
+
 		
 		$cacheFile = str_replace([root, '\\', '_', '/'], ['', '/', '__', '_'], realpath($_file));
 		

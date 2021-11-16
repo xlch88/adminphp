@@ -1,0 +1,19 @@
+{
+    "name": "dark495/adminphp",
+    "description": "mvc",
+    "type": "project",
+    "license": "WTFPL",
+    "autoload": {
+        "psr-4": {
+            "AdminPHP\\": "adminphp",
+			"App\\": "app",
+			"App\\Model\\": "app/Common/Model",
+			"App\\Lib\\": "app/Common/Lib"
+        },
+        "psr-0": {
+            "": "app/Extend/"
+        }
+    },
+    "require": {
+    }
+}

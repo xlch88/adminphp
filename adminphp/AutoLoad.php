@@ -25,12 +25,14 @@ class AutoLoad{
 	 * @return void
 	 */
 	public static function init(){
+		throw new \Exception('The module is obsolete');
 		spl_autoload_register(['\\AdminPHP\\AutoLoad', 'load']);
 		self::register('', adminphp . 'Libraries', 'none');
 		self::register('AdminPHP', adminphp, 'none');
 	}
 	
 	public static function initRegister(){
+		throw new \Exception('The module is obsolete');
 		self::register('', appPath . 'Common/Lib', 'none');
 		self::register('App', appPath, 'none');
 		self::register('App\\Model', appPath . 'Common/Model', 'none');
@@ -48,6 +50,7 @@ class AutoLoad{
 	 * @return void
 	 */
 	public static function register($class, $path, $first = 'none', $prefix = '', $subfix = '.php'){
+		throw new \Exception('The module is obsolete');
 		$path = [
 			'prefix'	=> $prefix,
 			'subfix'	=> $subfix,
@@ -81,6 +84,7 @@ class AutoLoad{
 	 * @return void
 	 */
 	public static function load($className, $exception = true, $return = false){
+		throw new \Exception('The module is obsolete');
 		$className = substr($className, 0, 1) == '\\' ? $className : '\\' . $className;
 		
 		if(class_exists($className, false)){

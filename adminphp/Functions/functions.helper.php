@@ -94,7 +94,12 @@ if(!function_exists('get_curl')){
 		curl_setopt($ch, CURLOPT_ENCODING, 'gzip');
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 		curl_setopt($ch, CURLOPT_NOSIGNAL, true);
-		curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
+		if($timeout >= 1){
+			curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
+		}elseif($timeout > 0 && $timeout < 1){
+			curl_setopt($ch, CURLOPT_TIMEOUT_MS, $timeout * 1000);
+		}
+
 		$ret = curl_exec($ch);
 		curl_close($ch);
 		return $ret;
@@ -130,15 +135,15 @@ if(!function_exists('randString')){
 	/**
 	 * 获取指定长度的0-9a-zA-Z随机字符
 	 *
-	 * @param int  $length     长度 
+	 * @param int  $length     长度
 	 * @param bool $verifyCode 验证码模式，删除了部分不好区分的字符，如1iIl o0O
 	 * @return string
 	 */
 	function randString($length, $verifyCode = false) {
-		if($verifyCode){
+		if(!$verifyCode){
 			$strPol = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 		}else{
-			$strPol = '23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz';
+			$strPol = '23456789ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz';
 		}
 		
 		$str = '';
@@ -171,7 +176,7 @@ if(!function_exists('json')){
 	 * @return null
 	 */
 	function json($arr) {
-		return json_encode($arr, JSON_PRETTY_PRINT + JSON_UNESCAPED_UNICODE);
+		return json_encode($arr, in_array('minJson', \AdminPHP\AdminPHP::$config['flags']) ? 0 : JSON_PRETTY_PRINT + JSON_UNESCAPED_UNICODE);
 	}
 }
 

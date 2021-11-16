@@ -54,6 +54,16 @@ class Config {
 	static public function mkfilename(string $configName){
 		return self::$path . self::$prefix . $configName . self::$subfix;
 	}
+
+	static public function setMemoryConfig(string $configName, array $data, mixed $onSave){
+		self::$readList[$configName] = [
+			'data'	=> $data,
+			'type'	=> 'memory',
+			'save'	=> $onSave
+		];
+
+		return self::$readList[$configName]['data'];
+	}
 	
 	/**
 	 * 读取配置*文件*
@@ -61,6 +71,10 @@ class Config {
 	 * 
 	 */
 	static public function &readFile(string $configName, string $configType = 'array', $throwException = false){
+		if(isset(self::$readList[$configName])){
+			return self::$readList[$configName]['data'];
+		}
+
 		$filename = self::mkfilename($configName);
 		
 		if(!is_file($filename)){
@@ -113,16 +127,26 @@ class Config {
 	 * 
 	 */
 	static public function writeFile($configName, $value = null, $configType = 'array'){
-		if($value === null){
+		if($value === null || $value === true){
 			if(!isset(self::$readList[$configName])){
 				return false;
 			}
-			
+
 			$value = self::$readList[$configName]['data'];
+			if(self::$readList[$configName]['type'] === 'memory'){
+				$onSave = self::$readList[$configName]['save'];
+				return $onSave($value);
+			}
+
 			$value = self::toSaveFile($value, $configType);
 			
 			return file_put_contents(self::$readList[$configName]['file'], $value);
 		}else{
+			if(isset(self::$readList[$configName]) && self::$readList[$configName]['type'] === 'memory'){
+				$onSave = self::$readList[$configName]['save'];
+				return $onSave($value);
+			}
+
 			$value = self::toSaveFile($value, $configType);
 			return file_put_contents(self::mkfilename($configName), $value);
 		}
@@ -179,7 +203,7 @@ class Config {
 	 * 
 	 * 
 	 */
-	static public function write($key = '', $value, $configName = null, $configType = 'array'){
+	static public function write($key = '', $value = [], $configName = null, $configType = 'array'){
 		if(is_null($configName)){
 			if(!isset(self::$webConfigFile['name']) || self::$webConfigFile['name'] == ''){
 				throw new \InvalidArgumentException(l('参数 configName 为空'));

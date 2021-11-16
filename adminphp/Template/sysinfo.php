@@ -22,7 +22,6 @@ if(isset($errorInfo) && $errorInfo['debug']){
 			<META http-equiv="content-type" content="text/html; charset=UTF-8">
 			<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
 			<style><?php include(adminphp . 'Template/style.css'); ?></style>
-			<!--<link href="/adminphp/Template/style.css" rel="stylesheet" >-->
 		</head>
 		
 		<body class="<?=isset($errorInfo) ? 'adminphp_exception' : ''; ?>">
